@@ -1,185 +1,311 @@
 import streamlit as st
 import pandas as pd
 import os
-import re
+import urllib.parse
+import traceback
 
-st.set_page_config(page_title="📦 Panel de Control: Artículos y Proveedores", layout="wide")
+st.set_page_config(page_title="Corralón - Portal de Clientes", layout="centered")
+
+# --- FUNCIONES DE DATOS ---
+def clasificar_articulo(row):
+    articulo = str(row.get('ARTICULO', '')).upper()
+    item = str(row.get('ITEM', '')).upper()
+    
+    texto = articulo + " " + item
+    
+    # Regla 1 (Exclusión)
+    if any(word in texto for word in ['FLETE', 'ALQUILER', 'MANO DE OBRA', 'SERVICIO', 'VIAJE']):
+        return 'EXCLUIR'
+        
+    # Regla 2 (Obra Gruesa)
+    if any(word in texto for word in ['LADRILLO', 'BOLSA', 'CEMENTO', 'ARENA', 'CAL', 'HIERRO', 'MALLA', 'CHAPA', 'ARIDO']):
+        return '🧱 Obra Gruesa y Materiales'
+        
+    # Regla 3 (Plomería)
+    if any(word in texto for word in ['PLOMERIA', 'SEPAPY', 'CAÑO', 'AWADUC', 'SANITARIO', 'GRIFERIA', 'TANQUE', 'BOMBA']):
+        return '💧 Plomería y Sanitarios'
+        
+    # Regla 4 (Electricidad)
+    if any(word in texto for word in ['ELECTRICIDAD', 'CABLE', 'ILUMINACION', 'FOCO', 'TOMA']):
+        return '⚡ Electricidad'
+        
+    # Regla 5 (Ferretería)
+    if any(word in texto for word in ['HERRAMIENTA', 'DISCO', 'MECHA', 'TORNILLO', 'CLAVO', 'PINTURA']):
+        return '🛠️ Ferretería y Herramientas'
+        
+    # Regla 6 (Por defecto)
+    return '📦 General / Otros'
 
 @st.cache_data
-def load_data():
-    folder_path = "."
+def cargar_articulos_df():
+    """Carga y limpia la lista de artículos y categorías del documento del corralón."""
+    # Archivos posibles
+    archivos = ['articulos.xls - Sheet 1.csv', 'articulos.xls']
+    df = None
     
-    # Load Main Files
-    df_articulos = pd.DataFrame()
-    df_stock = pd.DataFrame()
-
-    try:
-        df_articulos = pd.read_csv("articulos.xls - Sheet 1.csv")
-    except FileNotFoundError:
-        try:
-            df_articulos = pd.read_excel("articulos.xls")
-        except Exception:
-            pass
-
-    try:
-        df_stock = pd.read_csv("stock.xls - Sheet 1.csv")
-    except FileNotFoundError:
-        try:
-            df_stock = pd.read_excel("stock.xls")
-        except Exception:
-            pass
-
-    if df_articulos.empty or df_stock.empty:
-        st.error("Error al cargar los archivos principales ('articulos' y 'stock').")
-        return pd.DataFrame()
-
-    # Data Processing: Drop null IDs and convert to int
-    for df_temp in [df_articulos, df_stock]:
-        if 'ID' in df_temp.columns:
-            df_temp.dropna(subset=['ID'], inplace=True)
-            df_temp['ID'] = pd.to_numeric(df_temp['ID'], errors='coerce')
-            df_temp.dropna(subset=['ID'], inplace=True)
-            df_temp['ID'] = df_temp['ID'].astype(int)
-
-    if 'ID' not in df_articulos.columns or 'ID' not in df_stock.columns:
-        st.error("La columna 'ID' falta en los archivos principales.")
-        return pd.DataFrame()
-
-    # Merge DataFrames on 'ID'
-    df_merged = pd.merge(df_articulos, df_stock, on='ID', how='inner')
-    
-    # Initialize new columns
-    df_merged['PROVEEDOR'] = "SIN ASIGNAR"
-    df_merged['NRO DE CLIENTE'] = "SIN ASIGNAR"
-    
-    # Dictionaries to hold ID mappings
-    proveedor_mapping = {}
-    cliente_mapping = {}
-
-    # Define base files to exclude
-    base_files = ["app.py", "articulos.xls", "articulos.csv", "articulos.xls - Sheet 1.csv", 
-                  "stock.xls", "stock.csv", "stock.xls - Sheet 1.csv"]
-
-    pattern = re.compile(r'^(.*?)\s+(\d+)$')
-
-    # Search for other .csv or .xls files in the directory
-    for file in os.listdir(folder_path):
-        if file in base_files or file.startswith("~") or file.startswith("."):
-            continue
-            
-        if file.endswith(".csv") or file.endswith(".xls") or file.endswith(".xlsx"):
-            # Clean up the filename
-            prov_name_clean = file
-            for suffix in [".xls - Sheet 1.csv", ".xlsx - Sheet 1.csv", ".csv", ".xlsx", ".xls"]:
-                if prov_name_clean.endswith(suffix):
-                    prov_name_clean = prov_name_clean[:-len(suffix)]
-                    break
-
-            # Regex match
-            match = pattern.match(prov_name_clean)
-            if match:
-                proveedor_str = match.group(1).strip()
-                nro_cliente_str = match.group(2).strip()
-            else:
-                proveedor_str = prov_name_clean.strip()
-                nro_cliente_str = "SIN ASIGNAR"
-
-            # Load the provider file
+    for filename in archivos:
+        if os.path.exists(filename):
             try:
-                if file.endswith(".csv"):
-                    df_prov = pd.read_csv(file)
+                if filename.endswith('.csv'):
+                    df = pd.read_csv(filename)
                 else:
-                    df_prov = pd.read_excel(file)
-                
-                # If there's an ID column, map it
-                if 'ID' in df_prov.columns:
-                    df_prov = df_prov.dropna(subset=['ID'])
-                    df_prov['ID'] = pd.to_numeric(df_prov['ID'], errors='coerce')
-                    df_prov = df_prov.dropna(subset=['ID'])
-                    df_prov['ID'] = df_prov['ID'].astype(int)
-                    
-                    # Update mapping
-                    for prov_id in df_prov['ID'].unique():
-                        proveedor_mapping[prov_id] = proveedor_str
-                        cliente_mapping[prov_id] = nro_cliente_str
-                        
+                    try:
+                        df = pd.read_csv(filename, delimiter='\t')
+                    except:
+                        try:
+                            df = pd.read_excel(filename)
+                        except:
+                            df = pd.read_html(filename, decimal=',', thousands='.')[0]
+                break
             except Exception as e:
-                print(f"No se pudo cargar {file}: {e}")
+                print(f"Error cargando {filename}: {e}")
+                continue
 
-    # Map the columns to the main merged dataframe
-    # We update only those that have a match to avoid overwriting SIN ASIGNAR unnecessarily
-    df_merged['PROVEEDOR'] = df_merged['ID'].map(proveedor_mapping).fillna("SIN ASIGNAR")
-    df_merged['NRO DE CLIENTE'] = df_merged['ID'].map(cliente_mapping).fillna("SIN ASIGNAR")
+    if df is None:
+        return pd.DataFrame()
 
-    return df_merged
-
-def main():
-    st.title("📦 Panel de Control: Artículos y Proveedores")
-
-    with st.spinner('Cargando datos y procesando proveedores...'):
-        df = load_data()
-
-    if df.empty:
-        st.warning("No hay datos disponibles para mostrar. Asegúrate de que los archivos estén en la misma carpeta.")
-        return
-
-    # User Interface (Streamlit)
-    st.markdown("### Filtros")
-    col1, col2, col3, col4 = st.columns([2, 1, 1, 1])
+    # Limpiar columnas
+    df.columns = df.columns.astype(str).str.strip()
     
-    with col1:
-        search_query = st.text_input("Buscar por nombre del ARTICULO o número de ID:", placeholder="Ejemplo: 5218 o taladro")
-        
-    with col2:
-        # Provider filter
-        proveedores_unicos = ["Todos"] + sorted(df['PROVEEDOR'].astype(str).unique().tolist())
-        selected_proveedor = st.selectbox("Filtrar por PROVEEDOR:", proveedores_unicos)
-        
-    with col3:
-        # Client Number filter
-        clientes_unicos = ["Todos"] + sorted(df['NRO DE CLIENTE'].astype(str).unique().tolist())
-        selected_cliente = st.selectbox("Filtrar por NRO DE CLIENTE:", clientes_unicos)
+    if 'ARTICULO' not in df.columns:
+        return pd.DataFrame()
+
+    # Si no existe la columna ITEM, la creamos vacía para evitar fallos
+    if 'ITEM' not in df.columns:
+        df['ITEM'] = ''
+
+    # Quedarnos con ARTICULO e ITEM
+    df_clean = df[['ARTICULO', 'ITEM']].copy()
     
-    with col4:
-        st.write("") # Spacer
-        st.write("") # Spacer
-        show_negative_stock = st.checkbox("⚠️ Mostrar solo stock negativo")
+    # Limpiar ARTICULO (convertir a string y quitar espacios)
+    df_clean['ARTICULO'] = df_clean['ARTICULO'].astype(str).str.strip()
+    
+    # Excluir nulos formales en ARTICULO
+    df_clean = df_clean[(df_clean['ARTICULO'] != 'nan') & (df_clean['ARTICULO'] != '')]
+    
+    # Aplicar la función a cada fila para crear CATEGORIA_WEB
+    df_clean['CATEGORIA_WEB'] = df_clean.apply(clasificar_articulo, axis=1)
+    
+    # Filtrar EXCLUIR
+    df_clean = df_clean[df_clean['CATEGORIA_WEB'] != 'EXCLUIR']
+    
+    # Filtrar basura donde el articulo sean solo numeros
+    df_clean = df_clean[~df_clean['ARTICULO'].str.isnumeric()]
+    
+    # Ordenar alfabéticamente
+    df_clean = df_clean.sort_values(by='ARTICULO').reset_index(drop=True)
+    
+    return df_clean
 
-    # Filtering logic
-    filtered_df = df.copy()
+# --- INTERFAZ ---
+st.title("Bienvenido a Nuestro Corralón 🧱")
+st.write("Selecciona cómo prefieres trabajar hoy:")
 
-    articulo_col = next((col for col in filtered_df.columns if 'ARTICULO' in col.upper() or 'ARTÍCULO' in col.upper()), None)
-    stock_col = next((col for col in filtered_df.columns if col.upper() == 'STOCK' or col.upper() == 'CANTIDAD'), None)
+# Cargar el DataFrame global
+df_catalogo = cargar_articulos_df()
+articulos_reales = df_catalogo['ARTICULO'].tolist() if not df_catalogo.empty else ["Error cargando datos"]
 
-    # 1. Filter by Search Query
-    if search_query:
-        query = str(search_query).strip().lower()
+# Creamos TRES pestañas principales
+tab_proyectos, tab_archivos, tab_minorista = st.tabs([
+    "🏗️ Calculadora Estimativa", 
+    "📂 Subir Planilla de Obra", 
+    "🛒 Pedidos Rápidos"
+])
+
+# --- PESTAÑA 1: LA CALCULADORA DE OBRAS (Consultoría) ---
+with tab_proyectos:
+    st.header("Calculadora Inteligente de Materiales")
+    st.write("Estima los materiales básicos y recibe asesoramiento sin cargo.")
+    
+    opciones_proyecto = [
+        "Seleccionar proyecto...", 
+        "Pared de Ladrillo Hueco 18x18x33", 
+        "Pared de Ladrillo Hueco 12x18x33", 
+        "Contrapiso Estándar"
+    ]
+    
+    proyecto = st.selectbox("¿Qué tipo de trabajo vas a realizar?", opciones_proyecto)
+
+    if proyecto != "Seleccionar proyecto...":
+        metros = st.number_input("Metros Cuadrados (m²):", min_value=1, value=15, step=1)
+        st.subheader(f"📋 Estimación para {metros} m²")
         
-        mask_id = filtered_df['ID'].astype(str).str.contains(query, case=False, na=False)
-        if articulo_col:
-            mask_name = filtered_df[articulo_col].astype(str).str.contains(query, case=False, na=False)
-            filtered_df = filtered_df[mask_id | mask_name]
+        texto_pedido_obra = f"Hola, usé la calculadora web y necesito presupuesto para {metros}m2 de {proyecto}.\n\nMateriales sugeridos:\n"
+        
+        if proyecto == "Pared de Ladrillo Hueco 18x18x33":
+            ladrillos = int(metros * 16)
+            cemento = round(metros * 0.30, 2)
+            arena = round(metros * 0.05, 3)
+            cal = round(metros * 0.15, 2)
+            
+            st.write(f"- 🧱 **LADRILLO HUECO 18 X 18 X 33:** {ladrillos} unidades.")
+            st.write(f"- 🏗️ **CEMENTO X BOLSA - HOLCIM X 50 KG:** {cemento} bolsas.")
+            st.write(f"- ⏳ **AR ARENA MEDIANA X M3:** {arena} m³.")
+            st.write(f"- ⚪ **CAL HIDRATADA X 25 KG:** {cal} bolsas.")
+            
+            texto_pedido_obra += f"- {ladrillos} u. de LADRILLO HUECO 18 X 18 X 33\n- {cemento} bolsas de CEMENTO X BOLSA - HOLCIM X 50 KG\n- {cal} bolsas de CAL HIDRATADA X 25 KG\n- {arena} m3 de AR ARENA MEDIANA X M3"
+            
+        elif proyecto == "Pared de Ladrillo Hueco 12x18x33":
+            ladrillos = int(metros * 16)
+            cemento = round(metros * 0.30, 2)
+            arena = round(metros * 0.05, 3)
+            cal = round(metros * 0.15, 2)
+            
+            st.write(f"- 🧱 **LADRILLO HUECO 12 X 18 X 33:** {ladrillos} unidades.")
+            st.write(f"- 🏗️ **CEMENTO X BOLSA - HOLCIM X 50 KG:** {cemento} bolsas.")
+            st.write(f"- ⏳ **AR ARENA MEDIANA X M3:** {arena} m³.")
+            st.write(f"- ⚪ **CAL HIDRATADA X 25 KG:** {cal} bolsas.")
+            
+            texto_pedido_obra += f"- {ladrillos} u. de LADRILLO HUECO 12 X 18 X 33\n- {cemento} bolsas de CEMENTO X BOLSA - HOLCIM X 50 KG\n- {cal} bolsas de CAL HIDRATADA X 25 KG\n- {arena} m3 de AR ARENA MEDIANA X M3"
+
+        elif proyecto == "Contrapiso Estándar":
+            cemento = round(metros * 0.35, 2)
+            arena = round(metros * 0.05, 3)
+            ripio = round(metros * 0.05, 3)
+            
+            st.write(f"- 🏗️ **CEMENTO X BOLSA - HOLCIM X 50 KG:** {cemento} bolsas.")
+            st.write(f"- ⏳ **AR ARENA MEDIANA X M3:** {arena} m³.")
+            st.write(f"- 🪨 **PIEDRA/RIPIO X M3:** {ripio} m³.")
+            
+            texto_pedido_obra += f"- {cemento} bolsas de CEMENTO X BOLSA - HOLCIM X 50 KG\n- {arena} m3 de AR ARENA MEDIANA X M3\n- {ripio} m3 de PIEDRA/RIPIO X M3"
+
+        st.info("💡 Envíanos esto para que un ingeniero ajuste los cálculos y te ofrezca precio por volumen.")
+        
+        link_obra = f"https://wa.me/5493810000000?text={urllib.parse.quote(texto_pedido_obra)}"
+        st.markdown(f"**[🟢 Enviar Consulta por WhatsApp]({link_obra})**")
+
+
+# --- PESTAÑA 2: SUBIR ARCHIVOS (El gancho para obras grandes) ---
+with tab_archivos:
+    st.header("Cotizaciones Especiales y Obras")
+    st.write("¿Ya tienes tu lista de materiales, planilla Excel o plano en PDF? Súbelo aquí y nuestro equipo técnico lo analizará para darte el mejor presupuesto.")
+    
+    nombre_cliente = st.text_input("Tu Nombre o Empresa:")
+    telefono_cliente = st.text_input("Teléfono de contacto:")
+    
+    archivo_subido = st.file_uploader(
+        "Arrastra aquí tu Excel, PDF o foto del pedido", 
+        type=["pdf", "xls", "xlsx", "csv", "png", "jpg", "jpeg"]
+    )
+    
+    if st.button("📤 Enviar para cotizar"):
+        if nombre_cliente and telefono_cliente and archivo_subido:
+            carpeta_dest = "pedidos_recibidos"
+            if not os.path.exists(carpeta_dest):
+                os.makedirs(carpeta_dest)
+                
+            nombre_limpio = nombre_cliente.replace(" ", "_")
+            ruta_guardado = os.path.join(carpeta_dest, f"{nombre_limpio}_{archivo_subido.name}")
+            
+            try:
+                with open(ruta_guardado, "wb") as f:
+                    f.write(archivo_subido.getbuffer())
+                st.success(f"✅ ¡Archivo recibido con éxito! Un especialista ya lo tiene en su sistema.")
+                
+                msg_archivo = f"Hola, acabo de subir mi planilla de materiales en la web a nombre de {nombre_cliente}. Mi teléfono es {telefono_cliente}. Aguardo cotización."
+                link_archivo = f"https://wa.me/5493810000000?text={urllib.parse.quote(msg_archivo)}"
+                st.markdown(f"**[🟢 Avisar por WhatsApp que ya enviaste el archivo]({link_archivo})**")
+            except Exception as e:
+                st.error("Error al guardar el archivo. Por favor contacta por WhatsApp.")
+                print(f"Error subida archivo: {e}")
         else:
-            filtered_df = filtered_df[mask_id]
+            st.error("⚠️ Por favor, completa tu nombre, teléfono y asegúrate de adjuntar un archivo.")
 
-    # 2. Filter by Provider
-    if selected_proveedor != "Todos":
-        filtered_df = filtered_df[filtered_df['PROVEEDOR'].astype(str) == str(selected_proveedor)]
-        
-    # 3. Filter by Client Number
-    if selected_cliente != "Todos":
-        filtered_df = filtered_df[filtered_df['NRO DE CLIENTE'].astype(str) == str(selected_cliente)]
 
-    # 4. Filter by Negative Stock
-    if show_negative_stock and stock_col:
-        filtered_df[stock_col] = pd.to_numeric(filtered_df[stock_col], errors='coerce')
-        filtered_df = filtered_df[filtered_df[stock_col] < 0]
+# --- PESTAÑA 3: CATÁLOGO MINORISTA (Carrito de compras) ---
+with tab_minorista:
+    st.header("🛒 Catálogo y Pedido Rápido")
 
-    st.markdown("---")
-    st.metric(label="Total de artículos encontrados", value=len(filtered_df))
+    # Inicialización de estado para la navegación
+    if 'carrito' not in st.session_state:
+        st.session_state.carrito = []
+    if 'categoria_actual' not in st.session_state:
+        st.session_state.categoria_actual = None
+
+    if df_catalogo.empty:
+        st.error("No se pudo cargar el catálogo de artículos. Por favor, verifica los archivos de datos.")
+    else:
+        # 1. VISTA: GRILLA DE CATEGORÍAS
+        if st.session_state.categoria_actual is None:
+            st.subheader("📂 Selecciona una Categoría")
+            st.write("Explora nuestros productos por rubro:")
+            
+            # Obtener lista única de categorías
+            categorias_unicas = sorted(df_catalogo['CATEGORIA_WEB'].unique().tolist())
+            
+            # Dibujar grilla de 3 columnas
+            columnas = st.columns(3)
+            for i, cat in enumerate(categorias_unicas):
+                with columnas[i % 3]:
+                    # Botón grande para categoría
+                    if st.button(cat, use_container_width=True, key=f"cat_{cat}"):
+                        st.session_state.categoria_actual = cat
+                        st.rerun()
+
+        # 2. VISTA: LISTA DE PRODUCTOS POR CATEGORÍA
+        else:
+            cat_actual = st.session_state.categoria_actual
+            
+            # Encabezado con botón de volver
+            col_titulo, col_volver = st.columns([3, 1])
+            with col_titulo:
+                st.subheader(f"📦 Categoría: {cat_actual}")
+            with col_volver:
+                if st.button("🔙 Volver a Categorías"):
+                    st.session_state.categoria_actual = None
+                    st.rerun()
+            
+            # Filtrar df por la categoria seleccionada
+            df_cat = df_catalogo[df_catalogo['CATEGORIA_WEB'] == cat_actual]
+            
+            # Buscador interno
+            buscar_prod = st.text_input("🔍 Buscar artículo específico:", key=f"busqueda_{cat_actual}").strip().lower()
+            if buscar_prod:
+                df_cat = df_cat[df_cat['ARTICULO'].str.lower().str.contains(buscar_prod, na=False)]
+                
+            st.write(f"Mostrando {len(df_cat)} artículos.")
+            st.divider()
+
+            # Iterar productos
+            for index, row in df_cat.iterrows():
+                articulo = row['ARTICULO']
+                
+                # Container simulando tarjeta
+                with st.container(border=True):
+                    st.write(f"**{articulo}**")
+                    
+                    c_input, c_btn = st.columns([1, 2])
+                    # IDs unicos para inputs
+                    input_key = f"cant_{index}"
+                    
+                    with c_input:
+                        cant = st.number_input("Cantidad", min_value=1, value=1, step=1, key=input_key)
+                    with c_btn:
+                        # Alienamos verticalmente el boton un poco mas abajo (opcional padding con markdown, o directo st.columns extra)
+                        st.markdown("<br>", unsafe_allow_html=True)
+                        if st.button("➕ Agregar", key=f"btn_{index}", use_container_width=True):
+                            st.session_state.carrito.append({"Articulo": str(articulo), "Cantidad": int(cant)})
+                            st.success(f"¡Agregado al carrito!")
+            
+    # 4. EL CARRITO (Siempre visible al final de la pestaña)
+    st.divider()
     
-    # Interactive dataframe
-    st.dataframe(filtered_df, use_container_width=True)
+    if st.session_state.carrito:
+        st.subheader("📝 Tu Pedido Actual:")
+        pedido_texto = "Hola Corralón, quiero encargar lo siguiente para revisar stock:\n\n"
+        
+        for item in st.session_state.carrito:
+            st.write(f"👉 {item['Cantidad']} u. - **{item['Articulo']}**")
+            pedido_texto += f"- {item['Cantidad']} u. de {item['Articulo']}\n"
+            
+        col_vaciar, col_enviar = st.columns(2)
+        with col_vaciar:
+            if st.button("🗑️ Vaciar pedido"):
+                st.session_state.carrito = []
+                st.rerun()
 
-if __name__ == "__main__":
-    main()
+        with col_enviar:
+            import urllib.parse
+            msg_codificado = urllib.parse.quote(pedido_texto)
+            link_pedido = f"https://wa.me/5493810000000?text={msg_codificado}"
+            st.markdown(f"**[🟢 Enviar pedido por WhatsApp]({link_pedido})**")
