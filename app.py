@@ -33,7 +33,7 @@ def clasificar_articulo(row):
 
 @st.cache_data
 def cargar_articulos_df():
-    archivos = ['articulos.xls - Sheet 1.csv', 'articulos.xls']
+    archivos = ['articulos_stock_proveedores.xlsx', 'articulos_stock_proveedores.csv']
     df = None
     for filename in archivos:
         if os.path.exists(filename):
@@ -53,12 +53,45 @@ def cargar_articulos_df():
                 continue
 
     if df is None: return pd.DataFrame()
-    df.columns = df.columns.astype(str).str.strip()
     if 'ARTICULO' not in df.columns: return pd.DataFrame()
+    
+    # 1. Limpiar nombres de columnas
+    df.columns = df.columns.astype(str).str.strip()
+
+    # 2. Filtro de Venta (Solo mayores a 1)
+    if '$ VENTA1' in df.columns:
+        df['$ VENTA1'] = pd.to_numeric(df['$ VENTA1'], errors='coerce').fillna(0)
+        df = df[df['$ VENTA1'] > 1]
+
+    # 3. Filtro de Stock (Solo mayores a 0)
+    stock_col = next((col for col in df.columns if 'STOCK' in str(col).upper() or 'CANT' in str(col).upper()), 'Stock')
+    if stock_col in df.columns:
+        df[stock_col] = pd.to_numeric(df[stock_col], errors='coerce').fillna(0)
+        df = df[df[stock_col] > 0]
+
+    # 4. Filtro de Basura (Z, Asteriscos, Xx)
+    if 'ARTICULO' in df.columns:
+        df['ARTICULO'] = df['ARTICULO'].fillna('').astype(str)
+        patron_basura = r'^\s*\*|^\s*X[xX]|^\s*Z(?!(OC|IN|UN|AP))'
+        df = df[~df['ARTICULO'].str.contains(patron_basura, case=False, regex=True)]
+        
+        # 5. Formato de nombres limpios (Title Case y unidades correctas)
+        df['ARTICULO'] = df['ARTICULO'].str.title()
+        reemplazos = {
+            r'\sX\s': ' x ', r'\sKg\b': ' kg', r'\sMm\b': ' mm', 
+            r'\sCm\b': ' cm', r'\sMts\b|\sMt\b': ' m', r'\sLts\b|\sLt\b': ' L', 
+            r'\bPvc\b': ' PVC', r'\bMdf\b': ' MDF'
+        }
+        for patron, reemplazo in reemplazos.items():
+            df['ARTICULO'] = df['ARTICULO'].str.replace(patron, reemplazo, regex=True)
+
     if 'ITEM' not in df.columns: df['ITEM'] = ''
 
-    df_clean = df[['ARTICULO', 'ITEM']].copy()
-    df_clean['ARTICULO'] = df_clean['ARTICULO'].astype(str).str.strip()
+    columnas_guardar = ['ARTICULO', 'ITEM']
+    if stock_col in df.columns:
+        columnas_guardar.append(stock_col)
+        
+    df_clean = df[columnas_guardar].copy()
     df_clean = df_clean[(df_clean['ARTICULO'] != 'nan') & (df_clean['ARTICULO'] != '')]
     df_clean['CATEGORIA_WEB'] = df_clean.apply(clasificar_articulo, axis=1)
     df_clean = df_clean[df_clean['CATEGORIA_WEB'] != 'EXCLUIR']
@@ -92,8 +125,12 @@ with col2:
     st.image('WhatsApp Image 2026-03-18 at 16.45.55.jpeg', width=300)
 st.header('Corralon La Rural')
 
+st.info("🚀 **¿Cómo comprar?** 1️⃣ Armá tu pedido en el catálogo ➔ 2️⃣ Revisá tu carrito ➔ 3️⃣ Envialo por WhatsApp para coordinar pago y envío.")
+
 # Cargar DataFrame
 df_catalogo = cargar_articulos_df()
+
+
 
 if 'carrito' not in st.session_state: st.session_state.carrito = []
 if 'categoria_actual' not in st.session_state: st.session_state.categoria_actual = None
@@ -119,7 +156,7 @@ else:
         
     msg_codificado = urllib.parse.quote(pedido_texto)
     link_pedido = f"https://wa.me/5493810000000?text={msg_codificado}"
-    st.sidebar.markdown(f"**[🟢 Enviar por WhatsApp]({link_pedido})**")
+    st.sidebar.link_button("🟩 Consultar Stock y Envío por WhatsApp", link_pedido, type="primary", use_container_width=True)
 
 
 # --- PESTAÑAS ---
@@ -309,3 +346,7 @@ with tab_admin:
             st.error("Error en lectura de base maestra.")
     elif password:
         st.warning('Credenciales inválidas.')
+
+# --- FOOTER ---
+st.divider()
+st.markdown("<p style='text-align: center; color: gray; font-size: 0.9em;'>📍 Av. Camino del Perú 1291, Tucumán | ⏰ Lunes a Viernes 08:00 a 18:00hs | 🚚 Envíos a obra | 💳 Medios de pago: Efectivo, Transferencia, Débito/Crédito</p>", unsafe_allow_html=True)
