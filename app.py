@@ -5,9 +5,9 @@ import urllib.parse
 import traceback
 
 # Variable de Teléfono para WhatsApp (Reemplazar las X con tu número real)
-tel_whatsapp = '549381XXXXXXX'
+tel_whatsapp = '5493815139567'
 
-st.set_page_config(page_title="Corralon La Rural", layout="wide", page_icon="🧱")
+st.set_page_config(page_title="Corralon La Rural", layout="wide", page_icon="🧱", initial_sidebar_state="expanded")
 
 # CSS personalizado para mejorar las Pestañas (TABS)
 st.markdown("""
@@ -170,8 +170,10 @@ import base64
 import os
 def get_base64_img(filename):
     if os.path.exists(filename):
+        ext = os.path.splitext(filename)[1].lower()
+        mime = 'image/jpeg' if ext in ('.jpg', '.jpeg') else 'image/png' if ext == '.png' else 'image/webp' if ext == '.webp' else 'image/png'
         with open(filename, "rb") as f:
-            return f"data:image/png;base64,{base64.b64encode(f.read()).decode()}"
+            return f"data:{mime};base64,{base64.b64encode(f.read()).decode()}"
     return ""
 
 logo_rural = get_base64_img('WhatsApp Image 2026-03-18 at 16.45.55.jpeg')
@@ -370,7 +372,6 @@ if st.session_state.ver_carrito_pantalla:
     st.stop() # Finaliza la ejecución para que no se muestre el catálogo debajo
 
 # --- SIDEBAR: CARRITO PERSISTENTE ---
-st.sidebar.image('WhatsApp Image 2026-03-18 at 16.45.55.jpeg', width='stretch')
 st.sidebar.markdown('<h3 style="text-align: center;">Corralon La Rural</h3>', unsafe_allow_html=True)
 
 total_unidades = sum(item['Cantidad'] for item in st.session_state.carrito)
@@ -549,6 +550,95 @@ with tab_archivos:
 
 # --- PESTAÑA 3: CATÁLOGO MINORISTA ---
 with tab_minorista:
+
+    # --- BANNER PROMOCIONAL DE MARCAS ---
+    banner_b64 = get_base64_img('banner_marcas_larural.jpg')
+    if banner_b64:
+        banner_html = f"""
+        <style>
+        .promo-banner-wrap {{
+            position: relative;
+            width: 100%;
+            max-width: 95%;
+            margin: 0 auto 25px auto;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }}
+        .promo-banner-wrap:hover {{
+            transform: translateY(-3px);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.18);
+        }}
+        .promo-banner-wrap img {{
+            width: 100%;
+            display: block;
+            border-radius: 16px;
+            image-rendering: auto;
+            image-rendering: -webkit-optimize-contrast;
+            -ms-interpolation-mode: bicubic;
+        }}
+        .promo-overlay {{
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(0deg, rgba(180,30,30,0.92) 0%, rgba(180,30,30,0.7) 40%, transparent 100%);
+            padding: 30px 20px 18px 20px;
+            border-bottom-left-radius: 16px;
+            border-bottom-right-radius: 16px;
+        }}
+        .promo-overlay h3 {{
+            color: #fff;
+            margin: 0 0 4px 0;
+            font-size: 1.25rem;
+            font-weight: 800;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            letter-spacing: 0.5px;
+        }}
+        .promo-overlay p {{
+            color: rgba(255,255,255,0.9);
+            margin: 0;
+            font-size: 0.88rem;
+            font-weight: 500;
+        }}
+        @keyframes subtlePulse {{
+            0%, 100% {{ box-shadow: 0 8px 30px rgba(0,0,0,0.12); }}
+            50% {{ box-shadow: 0 8px 35px rgba(180,30,30,0.25); }}
+        }}
+        .promo-banner-wrap {{
+            animation: subtlePulse 4s ease-in-out infinite;
+        }}
+        .promo-banner-wrap:hover {{
+            animation: none;
+        }}
+        /* Responsive */
+        @media (max-width: 768px) {{
+            .promo-overlay {{
+                padding: 20px 12px 12px 12px;
+            }}
+            .promo-overlay h3 {{
+                font-size: 1rem;
+            }}
+            .promo-overlay p {{
+                font-size: 0.75rem;
+            }}
+        }}
+        </style>
+        <div class="promo-banner-wrap">
+            <img src="{banner_b64}" alt="Corralon La Rural - Marcas Líderes">
+            <div class="promo-overlay">
+                <h3>🏠 Todo para tu Obra en un Solo Lugar</h3>
+                <p>Holcim · Amanco · Ferrum · Tersuave · Weber — Orgullosamente afiliados a Disensa</p>
+            </div>
+        </div>
+        """
+        try:
+            st.html(banner_html)
+        except Exception:
+            import streamlit.components.v1 as components
+            components.html(banner_html, height=450)
+
     # --- SECCIÓN VIP: ASESORAMIENTO Y MARCAS LÍDERES ---
     with st.container(border=True):
         st.header("🏗️ Asesoramiento Profesional para tu Obra")
