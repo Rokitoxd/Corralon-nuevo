@@ -1,26 +1,20 @@
-import pandas as pd
+import streamlit as st
 
-with open('out.txt', 'w') as f:
-    try:
-        df1 = pd.read_html('articulos.xls', decimal=',', thousands='.')[0]
-        f.write('articulos.xls cols: ' + str(df1.columns.tolist()) + '\n')
-    except Exception as e:
-        f.write('articulos.xls html error: ' + str(e) + '\n')
-        
-        try:
-            df3 = pd.read_csv('articulos.xls', delimiter='\t')
-            f.write('articulos.xls tsv cols: ' + str(df3.columns.tolist()) + '\n')
-        except Exception as e:
-            f.write('articulos.xls tsv error: ' + str(e) + '\n')
-            
-            try:
-                df4 = pd.read_excel('articulos.xls')
-                f.write('articulos.xls excel cols: ' + str(df4.columns.tolist()) + '\n')
-            except Exception as e:
-                f.write('articulos.xls excel error: ' + str(e) + '\n')
+st.markdown('<div id="mi-boton-flotante"></div>', unsafe_allow_html=True)
+if st.button("🛒 Revisar Pedido (3)", type="primary"):
+    st.write("Abriendo carrito...")
 
-    try:
-        df2 = pd.read_excel('articulos_stock_proveedores.xlsx')
-        f.write('articulos_stock_proveedores.xlsx cols: ' + str(df2.columns.tolist()) + '\n')
-    except Exception as e:
-        f.write('articulos_stock_proveedores.xlsx error: ' + str(e) + '\n')
+st.markdown("""
+<style>
+/* Streamlit element containers are siblings */
+div:has(> div > div > #mi-boton-flotante) + div button {
+    position: fixed !important;
+    bottom: 20px !important;
+    right: 20px !important;
+    padding: 15px 25px !important;
+    border-radius: 50px !important;
+    box-shadow: 0px 4px 12px rgba(0,0,0,0.3) !important;
+    z-index: 999999 !important;
+}
+</style>
+""", unsafe_allow_html=True)

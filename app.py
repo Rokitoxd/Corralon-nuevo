@@ -4,7 +4,53 @@ import os
 import urllib.parse
 import traceback
 
-st.set_page_config(page_title="Corralon La Rural", layout="centered", page_icon="🧱")
+# Variable de Teléfono para WhatsApp (Reemplazar las X con tu número real)
+tel_whatsapp = '549381XXXXXXX'
+
+st.set_page_config(page_title="Corralon La Rural", layout="wide", page_icon="🧱")
+
+# CSS personalizado para mejorar las Pestañas (TABS)
+st.markdown("""
+<style>
+    /* Agrandar el texto y el padding de las pestañas */
+    .stTabs [data-baseweb="tab-list"] button {
+        font-size: 1.2rem;
+        padding: 1rem 2rem;
+    }
+    .stTabs [data-baseweb="tab-list"] button [data-testid="stMarkdownContainer"] p {
+        font-size: 1.25rem;
+        font-weight: 700;
+    }
+    /* Añadir un color leve al tab activo para que resalte más */
+    .stTabs [data-baseweb="tab-list"] button[aria-selected="true"] {
+        background-color: #f0f8ff;
+        border-top-left-radius: 8px;
+        border-top-right-radius: 8px;
+    }
+    
+    /* Responsive: Celulares (Wrap tabs para que no queden ocultas) */
+    @media (max-width: 768px) {
+        .stTabs [data-baseweb="tab-list"] {
+            display: flex;
+            flex-wrap: wrap !important;
+            justify-content: center;
+            gap: 5px;
+        }
+        .stTabs [data-baseweb="tab-list"] button {
+            flex-basis: 48% !important; /* Dos pestañas por fila en celular */
+            padding: 0.5rem !important;
+            font-size: 1rem !important;
+            border-radius: 8px !important;
+            border: 1px solid #e0e0e0;
+            margin: 0 !important;
+        }
+        .stTabs [data-baseweb="tab-list"] button [data-testid="stMarkdownContainer"] p {
+            font-size: 0.95rem !important;
+            text-align: center;
+        }
+    }
+</style>
+""", unsafe_allow_html=True)
 
 
 # --- FUNCIONES DE DATOS ---
@@ -120,12 +166,162 @@ def cargar_lista_madre():
     except Exception as e:
         return pd.DataFrame()
 
-col1, col2, col3 = st.columns([1, 2, 1])
-with col2:
-    st.image('WhatsApp Image 2026-03-18 at 16.45.55.jpeg', width=300)
-st.header('Corralon La Rural')
+import base64
+import os
+def get_base64_img(filename):
+    if os.path.exists(filename):
+        with open(filename, "rb") as f:
+            return f"data:image/png;base64,{base64.b64encode(f.read()).decode()}"
+    return ""
+
+logo_rural = get_base64_img('WhatsApp Image 2026-03-18 at 16.45.55.jpeg')
+logo_disensa = get_base64_img('Logo-Disensa.png')
+marcas = [
+    "amanco-logo-png_seeklogo-203056.png",
+    "ferrum-seeklogo.png",
+    "tersuave-seeklogo.png",
+    "Holcim_Logo_2021_sRGB.png",
+    "Weber Saint Gobain.png"
+]
+imgs_html = "".join([f'<img src="{get_base64_img(m)}" class="brand-logo">' for m in marcas])
+
+html_header = f"""
+<style>
+.header-container {{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    background-color: white;
+    padding: 15px 25px;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    margin-bottom: 25px;
+    border: 1px solid #f0f0f0;
+}}
+.header-left {{
+    flex: 1;
+    text-align: center;
+    border-right: 2px solid #f5f5f5;
+    padding-right: 20px;
+}}
+.header-right {{
+    flex: 1.5;
+    text-align: center;
+    padding-left: 20px;
+}}
+.main-logo {{
+    width: 100%;
+    max-width: 200px;
+    object-fit: contain;
+    border-radius: 8px;
+}}
+.title-rural {{
+    margin: 10px 0 0 0;
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #2c3e50;
+}}
+.title-confianza {{
+    margin: 0 0 10px 0;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #7f8c8d;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+}}
+.disensa-logo {{
+    width: 100%;
+    max-width: 160px;
+    object-fit: contain;
+    margin-bottom: 12px;
+}}
+.brands-container {{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: 12px;
+}}
+.brand-logo {{
+    height: 32px;
+    width: auto;
+    max-width: 18%;
+    object-fit: contain;
+    filter: grayscale(100%);
+    opacity: 0.7;
+    transition: all 0.3s;
+}}
+.brand-logo:hover {{
+    filter: none;
+    opacity: 1;
+}}
+
+/* Responsive para celulares */
+@media (max-width: 768px) {{
+    .header-container {{
+        padding: 12px 10px;
+        margin-bottom: 15px;
+    }}
+    .header-left {{
+        padding-right: 10px;
+        border-right: 1px solid #f0f0f0;
+    }}
+    .header-right {{
+        padding-left: 10px;
+    }}
+    .main-logo {{
+        max-width: 100px;
+    }}
+    .title-rural {{
+        font-size: 1rem;
+        margin-top: 5px;
+    }}
+    .title-confianza {{
+        font-size: 0.6rem;
+        letter-spacing: 0.5px;
+        margin-bottom: 6px;
+    }}
+    .disensa-logo {{
+        max-width: 80px;
+        margin-bottom: 8px;
+    }}
+    .brands-container {{
+        gap: 4px;
+        flex-wrap: wrap;
+    }}
+    .brand-logo {{
+        height: 16px;
+        max-width: 30%;
+    }}
+}}
+</style>
+
+<div class="header-container">
+    <div class="header-left">
+        <img src="{logo_rural}" class="main-logo">
+        <h1 class="title-rural">Corralon La Rural</h1>
+    </div>
+    
+    <div class="header-right">
+        <p class="title-confianza">Tu Corralón de Confianza</p>
+        <img src="{logo_disensa}" class="disensa-logo">
+        <div class="brands-container">
+            {imgs_html}
+        </div>
+    </div>
+</div>
+"""
+try:
+    st.html(html_header)
+except Exception:
+    import streamlit.components.v1 as components
+    components.html(html_header, height=220)
+
 
 st.info("🚀 **¿Cómo comprar?** 1️⃣ Armá tu pedido en el catálogo ➔ 2️⃣ Revisá tu carrito ➔ 3️⃣ Envialo por WhatsApp para coordinar pago y envío.")
+
+
 
 # Cargar DataFrame
 df_catalogo = cargar_articulos_df()
@@ -134,11 +330,67 @@ df_catalogo = cargar_articulos_df()
 
 if 'carrito' not in st.session_state: st.session_state.carrito = []
 if 'categoria_actual' not in st.session_state: st.session_state.categoria_actual = None
+if 'ver_carrito_pantalla' not in st.session_state: st.session_state.ver_carrito_pantalla = False
+
+if st.session_state.ver_carrito_pantalla:
+    st.header("\U0001f6d2 Resumen de tu Pedido")
+    
+    if not st.session_state.carrito:
+        st.info("No tienes productos en el carrito.")
+        if st.button("🔙 Volver a la Tienda"):
+            st.session_state.ver_carrito_pantalla = False
+            st.rerun()
+        st.stop()
+        
+    pedido_texto = "Hola Corralon La Rural, quiero encargar lo siguiente para revisar stock:\n\n"
+    for idx, item in enumerate(st.session_state.carrito):
+        col1, col2 = st.columns([4, 1])
+        with col1:
+            st.write(f"🔹 **{item['Cantidad']} u.** de {item['Articulo']}")
+        with col2:
+            if st.button("❌", key=f"del_checkout_{idx}"):
+                st.session_state.carrito.pop(idx)
+                if len(st.session_state.carrito) == 0:
+                    st.session_state.ver_carrito_pantalla = False
+                st.rerun()
+        pedido_texto += f"- {item['Cantidad']} u. de {item['Articulo']}\n"
+        
+    st.divider()
+    
+    col_back, col_send = st.columns(2)
+    with col_back:
+        if st.button("🔙 Seguir Comprando", use_container_width=True):
+            st.session_state.ver_carrito_pantalla = False
+            st.rerun()
+    with col_send:
+        msg_codificado = urllib.parse.quote(pedido_texto)
+        link_pedido = f"https://wa.me/{tel_whatsapp}?text={msg_codificado}"
+        st.link_button("🟩 Confirmar y Enviar a WhatsApp", link_pedido, type="primary", use_container_width=True)
+        
+    st.stop() # Finaliza la ejecución para que no se muestre el catálogo debajo
 
 # --- SIDEBAR: CARRITO PERSISTENTE ---
 st.sidebar.image('WhatsApp Image 2026-03-18 at 16.45.55.jpeg', width='stretch')
 st.sidebar.markdown('<h3 style="text-align: center;">Corralon La Rural</h3>', unsafe_allow_html=True)
-st.sidebar.header('🛒 Tu Pedido Actual')
+
+total_unidades = sum(item['Cantidad'] for item in st.session_state.carrito)
+
+if total_unidades > 0:
+    html_lleno = f"""
+    <div style="background-color: #e8f5e9; padding: 15px; border-radius: 10px; text-align: center; border: 2px solid #4CAF50; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+        <h3 style="color: #2e7d32; margin: 0;">\U0001f6d2 Carrito ({total_unidades})</h3>
+        <p style="color: #388e3c; font-size: 0.9em; font-weight: bold; margin: 5px 0 0 0;">¡Tenés productos listos!</p>
+    </div>
+    """
+    st.sidebar.markdown(html_lleno, unsafe_allow_html=True)
+else:
+    html_vacio = """
+    <div style="background-color: #fafafa; padding: 15px; border-radius: 10px; text-align: center; border: 1px dashed #bdbdbd;">
+        <h3 style="color: #9e9e9e; margin: 0;">\U0001f6d2 Carrito (0)</h3>
+    </div>
+    """
+    st.sidebar.markdown(html_vacio, unsafe_allow_html=True)
+
 st.sidebar.divider()
 
 if not st.session_state.carrito:
@@ -155,15 +407,52 @@ else:
         st.rerun()
         
     msg_codificado = urllib.parse.quote(pedido_texto)
-    link_pedido = f"https://wa.me/5493810000000?text={msg_codificado}"
+    link_pedido = f"https://wa.me/{tel_whatsapp}?text={msg_codificado}"
     st.sidebar.link_button("🟩 Consultar Stock y Envío por WhatsApp", link_pedido, type="primary", use_container_width=True)
+
+    # --- BOTÓN FLOTANTE GLOBAL (VISIBLE SIEMPRE) ---
+    st.markdown('<div id="btn-flotante-ancla"></div>', unsafe_allow_html=True)
+    if st.button(f"\U0001f6d2 Ver mi Pedido ({total_unidades})", key="btn_checkout_float", type="primary"):
+        st.session_state.ver_carrito_pantalla = True
+        st.rerun()
+
+    css_flotante = """
+    <style>
+    /* Buscamos el contenedor del ancla, y seleccionamos el hermano adyacente que contiene el st.button */
+    div[data-testid="stElementContainer"]:has(#btn-flotante-ancla) + div[data-testid="stElementContainer"] {
+        position: fixed !important;
+        bottom: 20px !important;
+        right: 20px !important;
+        z-index: 999999 !important;
+    }
+    div[data-testid="stElementContainer"]:has(#btn-flotante-ancla) + div[data-testid="stElementContainer"] button {
+        background-color: #25D366 !important;
+        color: white !important;
+        padding: 15px 25px !important;
+        border-radius: 50px !important;
+        border: none !important;
+        box-shadow: 0px 4px 12px rgba(0,0,0,0.3) !important;
+        transition: all 0.3s ease !important;
+    }
+    div[data-testid="stElementContainer"]:has(#btn-flotante-ancla) + div[data-testid="stElementContainer"] button:hover {
+        background-color: #1ebe5d !important;
+        transform: scale(1.05) !important;
+    }
+    div[data-testid="stElementContainer"]:has(#btn-flotante-ancla) + div[data-testid="stElementContainer"] button p {
+        font-size: 18px !important;
+        font-weight: bold !important;
+        color: white !important;
+    }
+    </style>
+    """
+    st.markdown(css_flotante, unsafe_allow_html=True)
 
 
 # --- PESTAÑAS ---
-tab_proyectos, tab_archivos, tab_minorista, tab_admin = st.tabs([
+tab_minorista, tab_proyectos, tab_archivos, tab_admin = st.tabs([
+    "\U0001f6d2 Catálogo Minorista",
     "🏗️ Calculadora de Obra", 
     "📂 Enviar Planilla", 
-    "🛒 Catálogo Minorista",
     "🔒 Intranet / Admin"
 ])
 
@@ -219,7 +508,7 @@ with tab_proyectos:
                 texto_pedido_obra += f"- {cemento} bolsas de CEMENTO X BOLSA - HOLCIM\n- {arena} m3 de AR ARENA\n- {ripio} m3 de PIEDRA/RIPIO"
 
         st.info("💡 Envíanos esto para que un agente ajuste los cálculos y te ofrezca el mejor precio.")
-        link_obra = f"https://wa.me/5493810000000?text={urllib.parse.quote(texto_pedido_obra)}"
+        link_obra = f"https://wa.me/{tel_whatsapp}?text={urllib.parse.quote(texto_pedido_obra)}"
         st.markdown(f"**[🟢 Consultar Presupuesto por WhatsApp]({link_obra})**")
 
 # --- PESTAÑA 2: ENVIAR PLANILLA ---
@@ -251,7 +540,7 @@ with tab_archivos:
                     st.success(f"✅ ¡Documento procesado! Un ejecutivo comercial lo está revisando.")
                     
                     msg_archivo = f"Hola Corralon La Rural, subí mi planilla de materiales a nombre de {nombre_cliente} ({telefono_cliente}). Aguardo respuesta para avanzar."
-                    link_archivo = f"https://wa.me/5493810000000?text={urllib.parse.quote(msg_archivo)}"
+                    link_archivo = f"https://wa.me/{tel_whatsapp}?text={urllib.parse.quote(msg_archivo)}"
                     st.markdown(f"**[🟢 Avisar al local que enviaste el archivo]({link_archivo})**")
                 except Exception as e:
                     st.error("Error temporal. Por favor contáctanos directamente.")
@@ -260,6 +549,14 @@ with tab_archivos:
 
 # --- PESTAÑA 3: CATÁLOGO MINORISTA ---
 with tab_minorista:
+    # --- SECCIÓN VIP: ASESORAMIENTO Y MARCAS LÍDERES ---
+    with st.container(border=True):
+        st.header("🏗️ Asesoramiento Profesional para tu Obra")
+        st.markdown("¿No sabés cuánto material necesitás o cuál es el ideal para tu proyecto? Nuestro equipo técnico te ayuda a planificar tu obra desde cero. Corralon La Rural es orgullosa red afiliada a **DISENSA**, garantizando la calidad de marcas líderes.")
+        msg_asesoramiento = urllib.parse.quote("Hola La Rural! Necesito asesoramiento profesional para un proyecto. Vengo desde Instagram.")
+        link_asesoramiento = f"https://wa.me/{tel_whatsapp}?text={msg_asesoramiento}"
+        st.link_button("💬 Consultar con un Asesor de Obra", link_asesoramiento, type="primary", use_container_width=True)
+
     if df_catalogo.empty:
         st.error("Error al conectar con la base de inventario. Verifica tus archivos.")
     else:
