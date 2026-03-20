@@ -676,15 +676,116 @@ with tab_minorista:
             if st.session_state.categoria_actual is None:
                 st.header("Explorar Familias")
                 categorias_unicas = sorted(df_catalogo['CATEGORIA_WEB'].unique().tolist())
+
+                # Mapeo de categorías a imágenes
+                cat_imagenes = {
+                    '🧱 Obra Gruesa y Materiales': 'cat_obra_gruesa.png',
+                    '💧 Plomería y Sanitarios': 'cat_plomeria.png',
+                    '⚡ Electricidad': 'cat_electricidad.png',
+                    '🛠️ Ferretería y Herramientas': 'cat_ferreteria.png',
+                    '📦 General / Otros': 'cat_general.png',
+                }
+
                 columnas = st.columns(2)
                 
                 for i, cat in enumerate(categorias_unicas):
                     with columnas[i % 2]:
-                        with st.container(border=True):
-                            st.write(f"**{cat}**")
-                            if st.button("Explorar", key=f"cat_{cat}", width='stretch'):
-                                st.session_state.categoria_actual = cat
-                                st.rerun()
+                        img_file = cat_imagenes.get(cat, '')
+                        img_b64 = get_base64_img(img_file) if img_file else ''
+                        
+                        # Contar productos de esta categoría
+                        n_productos = len(df_catalogo[df_catalogo['CATEGORIA_WEB'] == cat])
+                        
+                        if img_b64:
+                            card_html = f"""
+                            <style>
+                            .cat-card-{i} {{
+                                position: relative;
+                                border-radius: 14px;
+                                overflow: hidden;
+                                box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+                                transition: all 0.3s ease;
+                                cursor: pointer;
+                                margin-bottom: 12px;
+                            }}
+                            .cat-card-{i}:hover {{
+                                transform: translateY(-4px);
+                                box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+                            }}
+                            .cat-card-{i} .cat-img-wrap {{
+                                position: relative;
+                                width: 100%;
+                                aspect-ratio: 4/3;
+                            }}
+                            .cat-card-{i} .cat-img-wrap img {{
+                                width: 100%;
+                                height: 100%;
+                                object-fit: cover;
+                                display: block;
+                            }}
+                            .cat-card-{i} .cat-overlay {{
+                                position: absolute;
+                                top: 0;
+                                left: 0;
+                                right: 0;
+                                bottom: 0;
+                                background: linear-gradient(
+                                    180deg,
+                                    rgba(180, 30, 30, 0.35) 0%,
+                                    rgba(180, 30, 30, 0.55) 50%,
+                                    rgba(120, 15, 15, 0.85) 100%
+                                );
+                                display: flex;
+                                flex-direction: column;
+                                justify-content: flex-end;
+                                padding: 18px 16px;
+                                transition: background 0.3s ease;
+                            }}
+                            .cat-card-{i}:hover .cat-overlay {{
+                                background: linear-gradient(
+                                    180deg,
+                                    rgba(180, 30, 30, 0.25) 0%,
+                                    rgba(180, 30, 30, 0.45) 50%,
+                                    rgba(120, 15, 15, 0.75) 100%
+                                );
+                            }}
+                            .cat-card-{i} .cat-name {{
+                                font-size: 1.1rem;
+                                font-weight: 800;
+                                color: #ffffff;
+                                margin: 0 0 4px 0;
+                                text-shadow: 0 2px 6px rgba(0,0,0,0.4);
+                            }}
+                            .cat-card-{i} .cat-count {{
+                                font-size: 0.8rem;
+                                color: rgba(255,255,255,0.85);
+                                margin: 0;
+                                font-weight: 500;
+                            }}
+                            @media (max-width: 768px) {{
+                                .cat-card-{i} .cat-name {{
+                                    font-size: 0.95rem;
+                                }}
+                                .cat-card-{i} .cat-overlay {{
+                                    padding: 12px 10px;
+                                }}
+                            }}
+                            </style>
+                            <div class="cat-card-{i}">
+                                <div class="cat-img-wrap">
+                                    <img src="{img_b64}" alt="{cat}">
+                                    <div class="cat-overlay">
+                                        <p class="cat-name">{cat}</p>
+                                        <p class="cat-count">{n_productos} productos</p>
+                                    </div>
+                                </div>
+                            </div>
+                            """
+                            st.markdown(card_html, unsafe_allow_html=True)
+                        
+                        if st.button("Explorar", key=f"cat_{cat}", use_container_width=True):
+                            st.session_state.categoria_actual = cat
+                            st.rerun()
             else:
                 cat_actual = st.session_state.categoria_actual
                 col_titulo, col_volver = st.columns([3, 1], vertical_alignment="center")
