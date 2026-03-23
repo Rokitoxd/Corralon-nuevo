@@ -457,60 +457,201 @@ tab_minorista, tab_proyectos, tab_archivos, tab_admin = st.tabs([
     "🔒 Intranet / Admin"
 ])
 
+# --- FUNCIONES AUXILIARES PARA CALCULADORA ---
+def verificar_stock_material(df, keywords):
+    """Busca si existe un material en el catálogo con stock > 0.
+    keywords: lista de palabras que TODAS deben estar en el nombre del artículo.
+    Retorna (tiene_stock, nombre_encontrado)"""
+    if df.empty:
+        return False, ""
+    mask = pd.Series([True] * len(df), index=df.index)
+    for kw in keywords:
+        mask = mask & df['ARTICULO'].str.upper().str.contains(kw.upper(), na=False)
+    matches = df[mask]
+    if not matches.empty:
+        return True, matches.iloc[0]['ARTICULO']
+    return False, ""
+
+def render_material_line(nombre, cantidad, unidad, emoji, tiene_stock):
+    """Renderiza una línea de material con indicador visual de stock."""
+    if tiene_stock:
+        st.markdown(f"""
+        <div style="display:flex;align-items:center;gap:8px;padding:10px 14px;background:#f0faf0;border-left:4px solid #4CAF50;border-radius:6px;margin-bottom:6px;">
+            <span style="font-size:1.3rem;">{emoji}</span>
+            <span style="flex:1;font-weight:600;color:#1a1a1a;">{nombre}</span>
+            <span style="background:#4CAF50;color:white;padding:3px 10px;border-radius:12px;font-weight:700;font-size:0.9rem;">{cantidad} {unidad}</span>
+            <span style="color:#4CAF50;font-size:0.75rem;font-weight:600;">✓ En Stock</span>
+        </div>""", unsafe_allow_html=True)
+    else:
+        st.markdown(f"""
+        <div style="display:flex;align-items:center;gap:8px;padding:10px 14px;background:#f5f5f5;border-left:4px solid #ccc;border-radius:6px;margin-bottom:6px;opacity:0.4;">
+            <span style="font-size:1.3rem;">{emoji}</span>
+            <span style="flex:1;font-weight:600;color:#999;text-decoration:line-through;">{nombre}</span>
+            <span style="background:#ccc;color:white;padding:3px 10px;border-radius:12px;font-weight:700;font-size:0.9rem;">{cantidad} {unidad}</span>
+            <span style="color:#e53935;font-size:0.75rem;font-weight:700;">⚠️ Sin Stock</span>
+        </div>""", unsafe_allow_html=True)
+
 # --- PESTAÑA 1: LA CALCULADORA DE OBRAS ---
 with tab_proyectos:
-    st.header("Herramienta de Estimación")
-    st.write("Calcula los materiales básicos y obten asesoramiento sin cargo.")
+    st.header("🧮 Calculadora de Materiales")
+    st.write("Seleccioná tu proyecto, ingresá los metros cuadrados y obtené una estimación de materiales al instante. Los materiales sin stock aparecen deshabilitados.")
+
+    # CSS para las tarjetas de calculadoras
+    st.markdown("""
+    <style>
+    .calc-card {
+        background: white;
+        border: 1px solid #e8e8e8;
+        border-radius: 12px;
+        padding: 18px;
+        margin-bottom: 10px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    .calc-card:hover {
+        border-color: #b71c1c;
+        box-shadow: 0 4px 15px rgba(183,28,28,0.12);
+        transform: translateY(-2px);
+    }
+    .calc-card h4 {
+        margin: 0 0 4px 0;
+        color: #2c3e50;
+        font-size: 1rem;
+    }
+    .calc-card p {
+        margin: 0;
+        color: #7f8c8d;
+        font-size: 0.82rem;
+    }
+    .resultados-header {
+        background: linear-gradient(135deg, #b71c1c 0%, #d32f2f 100%);
+        color: white;
+        padding: 14px 20px;
+        border-radius: 10px;
+        margin-bottom: 12px;
+        text-align: center;
+    }
+    .resultados-header h3 { margin: 0; font-size: 1.1rem; }
+    .resultados-header p { margin: 4px 0 0 0; font-size: 0.85rem; opacity: 0.9; }
+    </style>
+    """, unsafe_allow_html=True)
     
     opciones_proyecto = [
         "Seleccionar proyecto...", 
-        "Pared de Ladrillo Hueco 18x18x33", 
-        "Pared de Ladrillo Hueco 12x18x33", 
-        "Contrapiso Estándar"
+        "🧱 Pared de Ladrillo Hueco 18x18x33", 
+        "🧱 Pared de Ladrillo Hueco 12x18x33", 
+        "🏗️ Contrapiso Estándar",
+        "📐 Carpeta de Nivelación",
+        "🏠 Revoque Grueso (Jaharro)",
+        "✨ Revoque Fino",
+        "🏢 Losa / Cubierta de Hormigón",
+        "💧 Impermeabilización con Membrana"
     ]
     
-    proyecto = st.selectbox("¿Qué tipo de trabajo vas a realizar?", opciones_proyecto)
+    proyecto = st.selectbox("¿Qué tipo de trabajo vas a realizar?", opciones_proyecto, key="calc_proyecto")
 
     if proyecto != "Seleccionar proyecto...":
-        metros = st.number_input("Metros Cuadrados (m²):", min_value=1, value=15, step=1)
-        st.subheader(f"📋 Estimación para {metros} m²")
-        texto_pedido_obra = f"Hola Corralon La Rural, usé la calculadora web y necesito presupuesto para {metros}m2 de {proyecto}.\n\nMateriales sugeridos:\n"
+        metros = st.number_input("Metros Cuadrados (m²):", min_value=1, value=15, step=1, key="calc_metros")
         
+        st.markdown(f"""
+        <div class="resultados-header">
+            <h3>📋 Estimación para {metros} m²</h3>
+            <p>{proyecto}</p>
+        </div>
+        """, unsafe_allow_html=True)
+
+        # Definir materiales según proyecto
+        materiales = []  # Lista de tuplas: (nombre, cantidad, unidad, emoji, keywords_busqueda)
+        
+        if proyecto == "🧱 Pared de Ladrillo Hueco 18x18x33":
+            materiales = [
+                ("Ladrillo Hueco 18x18x33", int(metros * 16), "u.", "🧱", ["LADRILLO", "HUECO", "18"]),
+                ("Cemento Holcim x 25kg", round(metros * 0.60, 1), "bol.", "🏗️", ["CEMENTO", "HOLCIM", "25"]),
+                ("Arena Mediana x m³", round(metros * 0.05, 2), "m³", "⏳", ["ARENA"]),
+                ("Cal Hidratada x 25kg", round(metros * 0.15, 1), "bol.", "⚪", ["CAL"]),
+            ]
+        
+        elif proyecto == "🧱 Pared de Ladrillo Hueco 12x18x33":
+            materiales = [
+                ("Ladrillo Hueco 12x18x33", int(metros * 16), "u.", "🧱", ["LADRILLO", "HUECO", "12"]),
+                ("Cemento Holcim x 25kg", round(metros * 0.60, 1), "bol.", "🏗️", ["CEMENTO", "HOLCIM", "25"]),
+                ("Arena Mediana x m³", round(metros * 0.05, 2), "m³", "⏳", ["ARENA"]),
+                ("Cal Hidratada x 25kg", round(metros * 0.15, 1), "bol.", "⚪", ["CAL"]),
+            ]
+        
+        elif proyecto == "🏗️ Contrapiso Estándar":
+            materiales = [
+                ("Cemento Holcim x 25kg", round(metros * 0.70, 1), "bol.", "🏗️", ["CEMENTO", "HOLCIM", "25"]),
+                ("Arena Mediana x m³", round(metros * 0.05, 2), "m³", "⏳", ["ARENA"]),
+                ("Piedra / Ripio x m³", round(metros * 0.05, 2), "m³", "🪨", ["PIEDRA"]),
+            ]
+        
+        elif proyecto == "📐 Carpeta de Nivelación":
+            materiales = [
+                ("Cemento Holcim x 25kg", round(metros * 0.50, 1), "bol.", "🏗️", ["CEMENTO", "HOLCIM", "25"]),
+                ("Arena Mediana x m³", round(metros * 0.03, 2), "m³", "⏳", ["ARENA"]),
+            ]
+        
+        elif proyecto == "🏠 Revoque Grueso (Jaharro)":
+            materiales = [
+                ("Cemento Holcim x 25kg", round(metros * 0.40, 1), "bol.", "🏗️", ["CEMENTO", "HOLCIM", "25"]),
+                ("Arena Mediana x m³", round(metros * 0.03, 2), "m³", "⏳", ["ARENA"]),
+                ("Cal Hidratada x 25kg", round(metros * 0.10, 1), "bol.", "⚪", ["CAL"]),
+            ]
+        
+        elif proyecto == "✨ Revoque Fino":
+            materiales = [
+                ("Cal Hidratada x 25kg", round(metros * 0.15, 1), "bol.", "⚪", ["CAL"]),
+                ("Arena Fina x m³", round(metros * 0.02, 2), "m³", "⏳", ["ARENA"]),
+                ("Cemento Holcim x 25kg", round(metros * 0.10, 1), "bol.", "🏗️", ["CEMENTO", "HOLCIM", "25"]),
+            ]
+        
+        elif proyecto == "🏢 Losa / Cubierta de Hormigón":
+            espesor = st.selectbox("Espesor de la losa:", ["10 cm (estándar)", "12 cm", "15 cm"], key="calc_espesor")
+            factor_espesor = {"10 cm (estándar)": 1.0, "12 cm": 1.2, "15 cm": 1.5}[espesor]
+            materiales = [
+                ("Cemento Holcim x 25kg", round(metros * 1.00 * factor_espesor, 1), "bol.", "🏗️", ["CEMENTO", "HOLCIM", "25"]),
+                ("Arena Mediana x m³", round(metros * 0.065 * factor_espesor, 2), "m³", "⏳", ["ARENA"]),
+                ("Piedra / Ripio x m³", round(metros * 0.085 * factor_espesor, 2), "m³", "🪨", ["PIEDRA"]),
+                ("Hierro Aletado 8mm x 12m", int(metros * 1.8 * factor_espesor), "barras", "🔩", ["HIERRO"]),
+                ("Malla / Alambre", round(metros * 1.1, 1), "m²", "🔗", ["MALLA"]),
+            ]
+        
+        elif proyecto == "💧 Impermeabilización con Membrana":
+            materiales = [
+                ("Membrana Asfáltica x rollo", round(metros * 1.1 / 10, 1), "rollos", "🛡️", ["MEMBRANA"]),
+                ("Pintura Asfáltica (imprimación)", round(metros * 0.3 / 4, 1), "latas", "🖌️", ["PINTURA", "ASFALT"]),
+            ]
+
+        # Verificar stock y renderizar materiales
+        texto_pedido_obra = f"Hola Corralon La Rural, usé la calculadora web y necesito presupuesto para {metros}m² de {proyecto}.\n\nMateriales sugeridos:\n"
+        hay_todo_en_stock = True
+        hay_algo_en_stock = False
+
         with st.container(border=True):
-            if proyecto == "Pared de Ladrillo Hueco 18x18x33":
-                ladrillos = int(metros * 16)
-                cemento = round(metros * 0.30, 2)
-                arena = round(metros * 0.05, 3)
-                cal = round(metros * 0.15, 2)
-                st.write(f"- 🧱 **LADRILLO HUECO 18 X 18 X 33:** {ladrillos} u.")
-                st.write(f"- 🏗️ **CEMENTO X BOLSA - HOLCIM X 50 KG:** {cemento} bol.")
-                st.write(f"- ⏳ **AR ARENA MEDIANA X M3:** {arena} m³.")
-                st.write(f"- ⚪ **CAL HIDRATADA X 25 KG:** {cal} bol.")
-                texto_pedido_obra += f"- {ladrillos} u. de LADRILLO HUECO 18 X 18 X 33\n- {cemento} bolsas de CEMENTO X BOLSA - HOLCIM\n- {cal} bolsas de CAL HIDRATADA\n- {arena} m3 de AR ARENA"
+            for nombre, cantidad, unidad, emoji, keywords in materiales:
+                tiene_stock, nombre_real = verificar_stock_material(df_catalogo, keywords)
+                render_material_line(nombre, cantidad, unidad, emoji, tiene_stock)
                 
-            elif proyecto == "Pared de Ladrillo Hueco 12x18x33":
-                ladrillos = int(metros * 16)
-                cemento = round(metros * 0.30, 2)
-                arena = round(metros * 0.05, 3)
-                cal = round(metros * 0.15, 2)
-                st.write(f"- 🧱 **LADRILLO HUECO 12 X 18 X 33:** {ladrillos} u.")
-                st.write(f"- 🏗️ **CEMENTO X BOLSA - HOLCIM X 50 KG:** {cemento} bol.")
-                st.write(f"- ⏳ **AR ARENA MEDIANA X M3:** {arena} m³.")
-                st.write(f"- ⚪ **CAL HIDRATADA X 25 KG:** {cal} bol.")
-                texto_pedido_obra += f"- {ladrillos} u. de LADRILLO HUECO 12 X 18 X 33\n- {cemento} bolsas de CEMENTO X BOLSA - HOLCIM\n- {cal} bolsas de CAL HIDRATADA\n- {arena} m3 de AR ARENA"
+                nombre_mostrar = nombre_real if nombre_real else nombre
+                texto_pedido_obra += f"- {cantidad} {unidad} de {nombre_mostrar}\n"
+                
+                if not tiene_stock:
+                    hay_todo_en_stock = False
+                else:
+                    hay_algo_en_stock = True
 
-            elif proyecto == "Contrapiso Estándar":
-                cemento = round(metros * 0.35, 2)
-                arena = round(metros * 0.05, 3)
-                ripio = round(metros * 0.05, 3)
-                st.write(f"- 🏗️ **CEMENTO X BOLSA - HOLCIM X 50 KG:** {cemento} bol.")
-                st.write(f"- ⏳ **AR ARENA MEDIANA X M3:** {arena} m³.")
-                st.write(f"- 🪨 **PIEDRA/RIPIO X M3:** {ripio} m³.")
-                texto_pedido_obra += f"- {cemento} bolsas de CEMENTO X BOLSA - HOLCIM\n- {arena} m3 de AR ARENA\n- {ripio} m3 de PIEDRA/RIPIO"
+        # Mensaje de disponibilidad
+        if hay_todo_en_stock:
+            st.success("✅ ¡Todos los materiales están disponibles en nuestro stock!")
+        elif hay_algo_en_stock:
+            st.warning("⚠️ Algunos materiales no están en stock actualmente. Consultanos para alternativas.")
+        else:
+            st.error("❌ Los materiales de esta calculadora no están en stock actualmente. Consultanos igualmente para encargos.")
 
-        st.info("💡 Envíanos esto para que un agente ajuste los cálculos y te ofrezca el mejor precio.")
+        st.info("💡 Envíanos esta estimación para que un asesor ajuste los cálculos y te ofrezca el mejor precio.")
         link_obra = f"https://wa.me/{tel_whatsapp}?text={urllib.parse.quote(texto_pedido_obra)}"
-        st.markdown(f"**[🟢 Consultar Presupuesto por WhatsApp]({link_obra})**")
+        st.link_button("🟢 Consultar Presupuesto por WhatsApp", link_obra, type="primary", use_container_width=True)
 
 # --- PESTAÑA 2: ENVIAR PLANILLA ---
 with tab_archivos:
