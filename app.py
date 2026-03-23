@@ -52,6 +52,34 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+# --- AUTO-COLAPSAR SIDEBAR EN CELULAR ---
+import streamlit.components.v1 as components
+components.html("""
+<script>
+(function() {
+    function collapseSidebar() {
+        if (window.innerWidth <= 768) {
+            var parent = window.parent.document;
+            var sidebar = parent.querySelector('[data-testid="stSidebar"]');
+            if (sidebar && sidebar.getAttribute('aria-expanded') === 'true') {
+                var btn = parent.querySelector('[data-testid="stSidebar"] button[data-testid="stBaseButton-headerNoPadding"]');
+                if (btn) { btn.click(); return true; }
+                btn = parent.querySelector('button[aria-label="Close sidebar"]');
+                if (btn) { btn.click(); return true; }
+                sidebar.setAttribute('aria-expanded', 'false');
+                return true;
+            }
+        }
+        return false;
+    }
+    var tries = 0;
+    var interval = setInterval(function() {
+        if (collapseSidebar() || tries > 15) clearInterval(interval);
+        tries++;
+    }, 200);
+})();
+</script>
+""", height=0)
 
 # --- FUNCIONES DE DATOS ---
 def clasificar_articulo(row):
