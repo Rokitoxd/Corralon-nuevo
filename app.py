@@ -81,30 +81,6 @@ components.html("""
 </script>
 """, height=0)
 
-# --- FUNCIONES DE DATOS ---
-def clasificar_articulo(row):
-    articulo = str(row.get('ARTICULO', '')).upper()
-    item = str(row.get('ITEM', '')).upper()
-    
-    texto = articulo + " " + item
-    
-    if any(word in texto for word in ['FLETE', 'ALQUILER', 'MANO DE OBRA', 'SERVICIO', 'VIAJE']):
-        return 'EXCLUIR'
-        
-    if any(word in texto for word in ['LADRILLO', 'BOLSA', 'CEMENTO', 'ARENA', 'CAL', 'HIERRO', 'MALLA', 'CHAPA', 'ARIDO']):
-        return '🧱 Obra Gruesa y Materiales'
-        
-    if any(word in texto for word in ['PLOMERIA', 'SEPAPY', 'CAÑO', 'AWADUC', 'SANITARIO', 'GRIFERIA', 'TANQUE', 'BOMBA']):
-        return '💧 Plomería y Sanitarios'
-        
-    if any(word in texto for word in ['ELECTRICIDAD', 'CABLE', 'ILUMINACION', 'FOCO', 'TOMA']):
-        return '⚡ Electricidad'
-        
-    if any(word in texto for word in ['HERRAMIENTA', 'DISCO', 'MECHA', 'TORNILLO', 'CLAVO', 'PINTURA']):
-        return '🛠️ Ferretería y Herramientas'
-        
-    return '📦 General / Otros'
-
 @st.cache_data
 def cargar_articulos_df():
     archivos = ['articulos_stock_proveedores.xlsx', 'articulos_stock_proveedores.csv']
@@ -132,24 +108,19 @@ def cargar_articulos_df():
     # 1. Limpiar nombres de columnas
     df.columns = df.columns.astype(str).str.strip()
 
-    # 2. Filtro de Venta (Solo mayores a 1)
+    # 2. Conversión de Venta a numérico
     if '$ VENTA1' in df.columns:
         df['$ VENTA1'] = pd.to_numeric(df['$ VENTA1'], errors='coerce').fillna(0)
-        df = df[df['$ VENTA1'] > 1]
 
-    # 3. Filtro de Stock (Solo mayores a 0)
+    # 3. Conversión de Stock a numérico
     stock_col = next((col for col in df.columns if 'STOCK' in str(col).upper() or 'CANT' in str(col).upper()), 'Stock')
     if stock_col in df.columns:
         df[stock_col] = pd.to_numeric(df[stock_col], errors='coerce').fillna(0)
-        df = df[df[stock_col] > 0]
 
-    # 4. Filtro de Basura (Z, Asteriscos, Xx)
     if 'ARTICULO' in df.columns:
         df['ARTICULO'] = df['ARTICULO'].fillna('').astype(str)
-        patron_basura = r'^\s*\*|^\s*X[xX]|^\s*Z(?!(OC|IN|UN|AP))'
-        df = df[~df['ARTICULO'].str.contains(patron_basura, case=False, regex=True)]
         
-        # 5. Formato de nombres limpios (Title Case y unidades correctas)
+        # 4. Formato de nombres limpios (Title Case y unidades correctas)
         df['ARTICULO'] = df['ARTICULO'].str.title()
         reemplazos = {
             r'\sX\s': ' x ', r'\sKg\b': ' kg', r'\sMm\b': ' mm', 
@@ -162,13 +133,21 @@ def cargar_articulos_df():
     if 'ITEM' not in df.columns: df['ITEM'] = ''
 
     columnas_guardar = ['ARTICULO', 'ITEM']
+    if 'CATEGORIA_WEB' in df.columns:
+        columnas_guardar.append('CATEGORIA_WEB')
+    if 'SUBCATEGORIA_WEB' in df.columns:
+        columnas_guardar.append('SUBCATEGORIA_WEB')
     if stock_col in df.columns:
         columnas_guardar.append(stock_col)
         
     df_clean = df[columnas_guardar].copy()
     df_clean = df_clean[(df_clean['ARTICULO'] != 'nan') & (df_clean['ARTICULO'] != '')]
-    df_clean['CATEGORIA_WEB'] = df_clean.apply(clasificar_articulo, axis=1)
-    df_clean = df_clean[df_clean['CATEGORIA_WEB'] != 'EXCLUIR']
+    
+    if 'CATEGORIA_WEB' not in df_clean.columns:
+        df_clean['CATEGORIA_WEB'] = '📦 General / Otros'
+    if 'SUBCATEGORIA_WEB' not in df_clean.columns:
+        df_clean['SUBCATEGORIA_WEB'] = 'Otros'
+        
     df_clean = df_clean[~df_clean['ARTICULO'].str.isnumeric()]
     df_clean = df_clean.sort_values(by='ARTICULO').reset_index(drop=True)
     return df_clean
@@ -356,10 +335,36 @@ st.info("🚀 **¿Cómo comprar?** 1️⃣ Armá tu pedido en el catálogo ➔ 2
 # Cargar DataFrame
 df_catalogo = cargar_articulos_df()
 
-
+# --- META PIXEL ---
+# Reemplazar con ID real del cliente
+PIXEL_ID = "1234567890"
+pixel_html = f"""
+<script>
+  !function(f,b,e,v,n,t,s)
+  {{if(f.fbq)return;n=f.fbq=function(){{n.callMethod?
+  n.callMethod.apply(n,arguments):n.queue.push(arguments)}};
+  if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+  n.queue=[];t=b.createElement(e);t.async=!0;
+  t.src=v;s=b.getElementsByTagName(e)[0];
+  s.parentNode.insertBefore(t,s)}}(window, document,'script',
+  'https://connect.facebook.net/en_US/fbevents.js');
+  fbq('init', '{PIXEL_ID}');
+  fbq('track', 'PageView');
+  
+  document.addEventListener('click', function(e) {{
+      var target = e.target.closest('a');
+      if (target && target.href.includes('wa.me')) {{
+          fbq('track', 'Lead');
+      }}
+  }});
+</script>
+<noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id={PIXEL_ID}&ev=PageView&noscript=1"/></noscript>
+"""
+components.html(pixel_html, height=0)
 
 if 'carrito' not in st.session_state: st.session_state.carrito = []
 if 'categoria_actual' not in st.session_state: st.session_state.categoria_actual = None
+if 'subcategoria_actual' not in st.session_state: st.session_state.subcategoria_actual = None
 if 'ver_carrito_pantalla' not in st.session_state: st.session_state.ver_carrito_pantalla = False
 
 if st.session_state.ver_carrito_pantalla:
@@ -478,12 +483,42 @@ else:
 
 
 # --- PESTAÑAS ---
-tab_minorista, tab_proyectos, tab_archivos, tab_admin = st.tabs([
-    "\U0001f6d2 Catálogo Minorista",
+tab_ofertas, tab_minorista, tab_proyectos, tab_archivos, tab_admin = st.tabs([
+    "🔥 Ofertas",
+    "🛒 Catálogo Minorista",
     "🏗️ Calculadora de Obra", 
     "📂 Enviar Planilla", 
     "🔒 Intranet / Admin"
 ])
+
+# --- PESTAÑA 0: OFERTAS ---
+with tab_ofertas:
+    st.header("🔥 Ofertas Destacadas")
+    st.info("Espacio reservado para el carrusel de imágenes de ofertas. Los productos en oferta se destacarán aquí.")
+    if not df_catalogo.empty:
+        df_ofertas = df_catalogo[df_catalogo['CATEGORIA_WEB'] == '🔥 Ofertas']
+        if df_ofertas.empty:
+            st.warning("No hay productos en oferta en este momento.")
+        else:
+            buscar_oferta = st.text_input("🔍 Filtrar ofertas:", key="busqueda_ofertas_tab").strip().lower()
+            if buscar_oferta:
+                df_ofertas = df_ofertas[df_ofertas['ARTICULO'].str.lower().str.contains(buscar_oferta, na=False)]
+                
+            st.divider()
+            
+            for index, row in df_ofertas.iterrows():
+                articulo = row['ARTICULO']
+                with st.container(border=True):
+                    c_nombre, c_input, c_btn = st.columns([5, 2, 2], vertical_alignment="bottom")
+                    with c_nombre:
+                        st.write(f"**{articulo}**")
+                    input_key = f"cant_{index}_oferta"
+                    with c_input:
+                        cant = st.number_input("Cant.", min_value=1, value=1, step=1, key=input_key, label_visibility="collapsed")
+                    with c_btn:
+                        if st.button("➕", key=f"btn_{index}_oferta", width='stretch'):
+                            st.session_state.carrito.append({"Articulo": str(articulo), "Cantidad": int(cant)})
+                            st.rerun()
 
 # --- FUNCIONES AUXILIARES PARA CALCULADORA ---
 def verificar_stock_material(df, keywords):
@@ -844,20 +879,126 @@ with tab_minorista:
         else:
             if st.session_state.categoria_actual is None:
                 st.header("Explorar Familias")
-                categorias_unicas = sorted(df_catalogo['CATEGORIA_WEB'].unique().tolist())
+                categorias_unicas = [cat for cat in sorted(df_catalogo['CATEGORIA_WEB'].unique().tolist()) if cat != '🔥 Ofertas']
 
                 # Mapeo de categorías a imágenes
                 cat_imagenes = {
-                    '🧱 Obra Gruesa y Materiales': 'cat_obra_gruesa.png',
-                    '💧 Plomería y Sanitarios': 'cat_plomeria.png',
+                    '🧱 Materiales de Construcción': 'cat_obra_gruesa.png',
+                    '💧 Plomería': 'cat_plomeria.png',
                     '⚡ Electricidad': 'cat_electricidad.png',
-                    '🛠️ Ferretería y Herramientas': 'cat_ferreteria.png',
+                    '🛠️ Ferretería': 'cat_ferreteria.png',
+                    '🎨 Pintura': 'cat_general.png', # Placeholder
                     '📦 General / Otros': 'cat_general.png',
+                    '⚙️ Hierros y Chapas': 'cat_hierros_chapas.png',
                 }
 
+                cat_principal = '🧱 Materiales de Construcción'
+                
+                if cat_principal in categorias_unicas:
+                    img_file = cat_imagenes.get(cat_principal, '')
+                    img_b64 = get_base64_img(img_file) if img_file else ''
+                    n_productos = len(df_catalogo[df_catalogo['CATEGORIA_WEB'] == cat_principal])
+                    
+                    if img_b64:
+                        card_html_principal = f"""
+                        <style>
+                        .cat-card-principal {{
+                            position: relative;
+                            border-radius: 14px;
+                            overflow: hidden;
+                            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+                            transition: all 0.3s ease;
+                            cursor: pointer;
+                            margin-bottom: 12px;
+                        }}
+                        .cat-card-principal:hover {{
+                            transform: translateY(-4px);
+                            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+                        }}
+                        .cat-card-principal .cat-img-wrap {{
+                            position: relative;
+                            width: 100%;
+                            aspect-ratio: 21/9;
+                        }}
+                        .cat-card-principal .cat-img-wrap img {{
+                            width: 100%;
+                            height: 100%;
+                            object-fit: cover;
+                            display: block;
+                        }}
+                        .cat-card-principal .cat-overlay {{
+                            position: absolute;
+                            top: 0;
+                            left: 0;
+                            right: 0;
+                            bottom: 0;
+                            background: linear-gradient(
+                                180deg,
+                                rgba(180, 30, 30, 0.35) 0%,
+                                rgba(180, 30, 30, 0.55) 50%,
+                                rgba(120, 15, 15, 0.85) 100%
+                            );
+                            display: flex;
+                            flex-direction: column;
+                            justify-content: flex-end;
+                            padding: 24px 20px;
+                            transition: background 0.3s ease;
+                        }}
+                        .cat-card-principal:hover .cat-overlay {{
+                            background: linear-gradient(
+                                180deg,
+                                rgba(180, 30, 30, 0.25) 0%,
+                                rgba(180, 30, 30, 0.45) 50%,
+                                rgba(120, 15, 15, 0.75) 100%
+                            );
+                        }}
+                        .cat-card-principal .cat-name {{
+                            font-size: 1.6rem;
+                            font-weight: 800;
+                            color: #ffffff;
+                            margin: 0 0 4px 0;
+                            text-shadow: 0 2px 6px rgba(0,0,0,0.4);
+                        }}
+                        .cat-card-principal .cat-count {{
+                            font-size: 1rem;
+                            color: rgba(255,255,255,0.85);
+                            margin: 0;
+                            font-weight: 500;
+                        }}
+                        @media (max-width: 768px) {{
+                            .cat-card-principal .cat-name {{
+                                font-size: 1.2rem;
+                            }}
+                            .cat-card-principal .cat-overlay {{
+                                padding: 16px 12px;
+                            }}
+                            .cat-card-principal .cat-img-wrap {{
+                                aspect-ratio: 16/9;
+                            }}
+                        }}
+                        </style>
+                        <div class="cat-card-principal">
+                            <div class="cat-img-wrap">
+                                <img src="{img_b64}" alt="{cat_principal}">
+                                <div class="cat-overlay">
+                                    <p class="cat-name">{cat_principal}</p>
+                                    <p class="cat-count">{n_productos} productos principales</p>
+                                </div>
+                            </div>
+                        </div>
+                        """
+                        st.markdown(card_html_principal, unsafe_allow_html=True)
+                    
+                    if st.button("Explorar Materiales Principales", key=f"cat_{cat_principal}", use_container_width=True):
+                        st.session_state.categoria_actual = cat_principal
+                        st.rerun()
+
+                    st.markdown("<br>", unsafe_allow_html=True)
+
+                categorias_secundarias = [c for c in categorias_unicas if c != cat_principal]
                 columnas = st.columns(2)
                 
-                for i, cat in enumerate(categorias_unicas):
+                for i, cat in enumerate(categorias_secundarias):
                     with columnas[i % 2]:
                         img_file = cat_imagenes.get(cat, '')
                         img_b64 = get_base64_img(img_file) if img_file else ''
@@ -957,34 +1098,66 @@ with tab_minorista:
                             st.rerun()
             else:
                 cat_actual = st.session_state.categoria_actual
+                subcat_actual = st.session_state.subcategoria_actual
+                
                 col_titulo, col_volver = st.columns([3, 1], vertical_alignment="center")
                 with col_titulo:
-                    st.header(cat_actual)
+                    if subcat_actual:
+                        st.header(f"{cat_actual} > {subcat_actual}")
+                    else:
+                        st.header(cat_actual)
                 with col_volver:
                     if st.button("🔙 Volver"):
-                        st.session_state.categoria_actual = None
+                        if subcat_actual:
+                            st.session_state.subcategoria_actual = None
+                        else:
+                            st.session_state.categoria_actual = None
                         st.rerun()
                 
-                df_cat = df_catalogo[df_catalogo['CATEGORIA_WEB'] == cat_actual]
-                buscar_prod = st.text_input("🔍 Filtrar dentro de esta sección:", key=f"busqueda_{cat_actual}").strip().lower()
-                if buscar_prod:
-                    df_cat = df_cat[df_cat['ARTICULO'].str.lower().str.contains(buscar_prod, na=False)]
+                # Obtener subcategorías reales de la base de datos
+                subcategorias_reales = sorted(df_catalogo[df_catalogo['CATEGORIA_WEB'] == cat_actual]['SUBCATEGORIA_WEB'].unique().tolist())
+                
+                # Si la categoría tiene subcategorías y no hemos elegido ninguna
+                if subcategorias_reales and subcat_actual is None and len(subcategorias_reales) > 0:
+                    # Si solo hay una subcategoría llamada "Otros", saltarla e ir directo a los productos
+                    if len(subcategorias_reales) == 1 and subcategorias_reales[0] == "Otros":
+                        st.session_state.subcategoria_actual = "Otros"
+                        st.rerun()
+                    else:
+                        st.write("Selecciona una subcategoría:")
+                        cols_sub = st.columns(2)
+                        for i, sub in enumerate(subcategorias_reales):
+                            with cols_sub[i % 2]:
+                                if st.button(sub, use_container_width=True, key=f"sub_{i}_{cat_actual}"):
+                                    st.session_state.subcategoria_actual = sub
+                                    st.rerun()
+                        st.divider()
+                else:
+                    # Mostrar productos
+                    df_cat = df_catalogo[df_catalogo['CATEGORIA_WEB'] == cat_actual]
                     
-                st.divider()
+                    if subcat_actual:
+                        df_cat = df_cat[df_cat['SUBCATEGORIA_WEB'] == subcat_actual]
+                        
+                    buscar_prod = st.text_input("🔍 Filtrar dentro de esta sección:", key=f"busqueda_{cat_actual}_{subcat_actual}").strip().lower()
+                    if buscar_prod:
+                        df_cat = df_cat[df_cat['ARTICULO'].str.lower().str.contains(buscar_prod, na=False)]
+                        
+                    st.divider()
 
-                for index, row in df_cat.iterrows():
-                    articulo = row['ARTICULO']
-                    with st.container(border=True):
-                        c_nombre, c_input, c_btn = st.columns([5, 2, 2], vertical_alignment="bottom")
-                        with c_nombre:
-                            st.write(f"**{articulo}**")
-                        input_key = f"cant_{index}"
-                        with c_input:
-                            cant = st.number_input("Cant.", min_value=1, value=1, step=1, key=input_key, label_visibility="collapsed")
-                        with c_btn:
-                            if st.button("➕", key=f"btn_{index}", width='stretch'):
-                                st.session_state.carrito.append({"Articulo": str(articulo), "Cantidad": int(cant)})
-                                st.rerun()
+                    for index, row in df_cat.iterrows():
+                        articulo = row['ARTICULO']
+                        with st.container(border=True):
+                            c_nombre, c_input, c_btn = st.columns([5, 2, 2], vertical_alignment="bottom")
+                            with c_nombre:
+                                st.write(f"**{articulo}**")
+                            input_key = f"cant_{index}_{cat_actual}"
+                            with c_input:
+                                cant = st.number_input("Cant.", min_value=1, value=1, step=1, key=input_key, label_visibility="collapsed")
+                            with c_btn:
+                                if st.button("➕", key=f"btn_{index}_{cat_actual}", width='stretch'):
+                                    st.session_state.carrito.append({"Articulo": str(articulo), "Cantidad": int(cant)})
+                                    st.rerun()
 
 # --- PESTAÑA 4: INTRANET ---
 with tab_admin:
