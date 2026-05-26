@@ -4,17 +4,7 @@ import { useEffect, useState } from "react";
 import { useCart } from "@/components/CartContext";
 import Link from "next/link";
 
-const CAT_IMAGENES = {
-  '🧱 Materiales de Construcción': '/cat_obra_gruesa.png',
-  '💧 Plomería': '/cat_plomeria.png',
-  '⚡ Electricidad': '/cat_electricidad.png',
-  '🛠️ Ferretería': '/cat_ferreteria.png',
-  '🎨 Pintura': '/cat_general.png',
-  '📦 General / Otros': '/cat_general.png',
-  '⚙️ Hierros y Chapas': '/cat_hierros_chapas.png',
-};
 
-const BRANDS = ['Holcim', 'Amanco', 'Ferrum', 'Tersuave', 'Weber'];
 
 export default function Home() {
   const [ofertas, setOfertas] = useState([]);
@@ -26,19 +16,31 @@ export default function Home() {
   const tel_whatsapp = "5493815139567";
 
   useEffect(() => {
-    fetch("/api/catalogo")
-      .then((res) => res.json())
-      .then((data) => {
-        if (Array.isArray(data)) {
-          const onlyOfertas = data.filter((item) => item.CATEGORIA_WEB === "🔥 Ofertas");
-          setOfertas(onlyOfertas);
-        }
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error(err);
-        setLoading(false);
-      });
+    let retries = 0;
+    const fetchData = () => {
+      fetch("/api/catalogo")
+        .then((res) => {
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          return res.json();
+        })
+        .then((data) => {
+          if (Array.isArray(data)) {
+            const onlyOfertas = data.filter((item) => item.CATEGORIA_WEB === "🔥 Ofertas");
+            setOfertas(onlyOfertas);
+          }
+          setLoading(false);
+        })
+        .catch((err) => {
+          console.error('Fetch attempt failed:', err);
+          retries++;
+          if (retries < 3) {
+            setTimeout(fetchData, 1500);
+          } else {
+            setLoading(false);
+          }
+        });
+    };
+    fetchData();
   }, []);
 
   const showToast = (message) => {
@@ -157,20 +159,29 @@ export default function Home() {
       </section>
 
       {/* ASESORAMIENTO Y LOGÍSTICA DE ENVÍOS */}
+      <style>{`
+        .asesor-card { display: flex; gap: 0; padding: 0; overflow: hidden; }
+        .asesor-text { flex: 1 1 350px; padding: 40px; display: flex; flex-direction: column; justify-content: center; }
+        .asesor-img { flex: 1 1 300px; min-height: 280px; position: relative; background-color: #eee; }
+        @media (max-width: 768px) {
+          .asesor-card { flex-direction: column-reverse; }
+          .asesor-text { padding: 24px; flex: none; }
+          .asesor-img { flex: none; min-height: 200px; max-height: 220px; }
+          .asesor-card h3 { font-size: 1.2rem !important; }
+        }
+        @media (max-width: 480px) {
+          .asesor-text { padding: 20px; }
+          .asesor-img { max-height: 180px; }
+        }
+      `}</style>
       <section style={{ marginBottom: '60px' }}>
-        <div className="card" style={{
-          display: 'flex',
-          gap: '32px',
-          alignItems: 'stretch',
-          padding: '0',
-          overflow: 'hidden',
-          flexWrap: 'wrap',
+        <div className="card asesor-card" style={{
           background: 'var(--surface-color)',
           boxShadow: 'var(--shadow-md)',
           borderLeft: '4px solid var(--primary)',
         }}>
           {/* Text content column */}
-          <div style={{ flex: '1 1 350px', padding: '40px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+          <div className="asesor-text">
             <h3 style={{ fontSize: '1.5rem', color: 'var(--secondary)', marginBottom: '12px', marginTop: 0 }}>
               Asesoramiento Profesional y Envíos a Obra 🚚
             </h3>
@@ -185,7 +196,7 @@ export default function Home() {
                 ✔️ Cobertura en toda la provincia (San Miguel, Yerba Buena, Tafí Viejo, etc.)
               </li>
               <li style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', color: 'var(--text-main)', fontWeight: 500 }}>
-                ✔️ Asistencia directa de arquitectos en obra
+                ✔️ Asistencia directa de ingenieros en obra
               </li>
             </ul>
             <div>
@@ -197,7 +208,7 @@ export default function Home() {
           </div>
           
           {/* Delivery truck image column */}
-          <div style={{ flex: '1 1 300px', minHeight: '300px', position: 'relative', backgroundColor: '#eee' }}>
+          <div className="asesor-img">
             <img
               src="/delivery_truck.png"
               alt="Camión de Reparto Corralón La Rural"
@@ -263,124 +274,171 @@ export default function Home() {
       <section style={{ marginBottom: '60px' }}>
         <div className="page-header">
           <h2>Nuestras Categorías</h2>
-          <p>Explorá nuestra amplia variedad de productos</p>
+          <p>Todo lo que necesitás para tu obra en un solo lugar</p>
         </div>
 
-        {/* FEATURED CATEGORY (Materiales de Construcción) */}
-        {(() => {
-          const featCat = "🧱 Materiales de Construcción";
-          const featImg = CAT_IMAGENES[featCat];
-          if (!featImg) return null;
-          return (
-            <Link href="/catalogo" style={{ textDecoration: 'none' }}>
-              <div
-                className="card"
-                style={{
-                  cursor: 'pointer',
-                  padding: 0,
-                  overflow: 'hidden',
-                  marginBottom: '24px',
-                  borderLeft: '4px solid var(--primary)',
-                  boxShadow: 'var(--shadow-md)',
-                  transition: 'transform 0.2s, box-shadow 0.2s',
-                  animation: 'fadeInUp 0.4s ease-out',
-                }}
+        {/* ── FEATURED: Materiales de Construcción ── */}
+        <style>{`
+          .featured-cat-pills { display: flex; flex-direction: column; gap: 12px; flex-shrink: 0; }
+          .featured-cat-img { width: 100%; height: 280px; object-fit: cover; display: block; }
+          .featured-cat-overlay { position: absolute; inset: 0; background: linear-gradient(100deg, rgba(140,10,6,0.88) 0%, rgba(180,22,14,0.65) 40%, rgba(0,0,0,0.25) 100%); }
+          .featured-cat-content { position: absolute; inset: 0; display: flex; align-items: center; padding: 40px 48px; gap: 24px; }
+          .featured-cat-desc { color: rgba(255,255,255,0.85); font-size: 1rem; max-width: 520px; margin: 0 0 20px; line-height: 1.6; }
+          @media (max-width: 768px) {
+            .featured-cat-pills { display: none; }
+            .featured-cat-img { height: 220px; }
+            .featured-cat-overlay { background: linear-gradient(180deg, rgba(0,0,0,0.15) 0%, rgba(140,10,6,0.92) 60%) !important; }
+            .featured-cat-content { padding: 20px; align-items: flex-end; }
+            .featured-cat-desc { font-size: 0.88rem; margin: 0 0 14px; }
+          }
+          @media (max-width: 480px) {
+            .featured-cat-img { height: 200px; }
+            .featured-cat-content { padding: 16px; }
+          }
+        `}</style>
+        <Link href="/catalogo" style={{ textDecoration: 'none', display: 'block', marginBottom: '20px' }}>
+          <div style={{
+            position: 'relative',
+            borderRadius: '20px',
+            overflow: 'hidden',
+            cursor: 'pointer',
+            boxShadow: '0 8px 40px rgba(192, 22, 14, 0.22)',
+            transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+            border: '3px solid #c0160e',
+          }}
+          onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 16px 50px rgba(192,22,14,0.30)'; }}
+          onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 8px 40px rgba(192,22,14,0.22)'; }}
+          >
+            {/* Background image */}
+            <img
+              src="/cat_obra_gruesa.png"
+              alt="Materiales de Construcción"
+              className="featured-cat-img"
+            />
+            {/* Gradient overlay */}
+            <div className="featured-cat-overlay" />
+            {/* Content */}
+            <div className="featured-cat-content">
+              <div style={{ flex: 1 }}>
+                {/* Badge */}
+                <div style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '6px',
+                  background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)',
+                  border: '1px solid rgba(255,255,255,0.3)',
+                  borderRadius: '50px', padding: '5px 16px', marginBottom: '12px',
+                  fontSize: '0.72rem', fontWeight: 700, color: '#fff', textTransform: 'uppercase', letterSpacing: '1px',
+                }}>
+                  ⭐ Nuestra Especialidad
+                </div>
+                <h3 style={{
+                  fontSize: 'clamp(1.4rem, 3vw, 2.4rem)', fontWeight: 900, color: '#fff',
+                  margin: '0 0 8px', textShadow: '0 2px 8px rgba(0,0,0,0.4)', lineHeight: 1.2,
+                }}>
+                  🧱 Materiales de Construcción
+                </h3>
+                <p className="featured-cat-desc">
+                  Cemento, cal, áridos, hierros, chapas y todo para cimientos y estructura. La prioridad de tu obra con los mejores precios del mercado.
+                </p>
+                <div style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '8px',
+                  background: '#ffffff', color: '#c0160e',
+                  padding: '10px 24px', borderRadius: '50px',
+                  fontWeight: 700, fontSize: 'clamp(0.82rem, 2vw, 0.95rem)',
+                  boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
+                }}>
+                  Ver Catálogo Completo →
+                </div>
+              </div>
+              {/* Right decorative stat pills — hidden on mobile */}
+              <div className="featured-cat-pills">
+                {[
+                  { label: 'Cemento & Cal', icon: '🏗️' },
+                  { label: 'Áridos & Arena', icon: '⚙️' },
+                  { label: 'Hierros & Chapas', icon: '🔩' },
+                  { label: 'Ladrillos & Bloques', icon: '🧱' },
+                ].map(({ label, icon }) => (
+                  <div key={label} style={{
+                    display: 'flex', alignItems: 'center', gap: '10px',
+                    background: 'rgba(255,255,255,0.12)', backdropFilter: 'blur(6px)',
+                    border: '1px solid rgba(255,255,255,0.2)',
+                    borderRadius: '12px', padding: '8px 16px', color: '#fff',
+                    fontSize: '0.85rem', fontWeight: 600,
+                  }}>
+                    <span style={{ fontSize: '1.1rem' }}>{icon}</span> {label}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </Link>
+
+        {/* ── OTHER CATEGORIES — compact icon grid ── */}
+        <p style={{ fontSize: '0.78rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1.5px', color: '#aaa', marginBottom: '14px' }}>
+          Otras Categorías
+        </p>
+        <style>{`
+          .other-cats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 14px;
+          }
+          @media (max-width: 768px) {
+            .other-cats-grid {
+              grid-template-columns: repeat(2, 1fr);
+              gap: 10px;
+            }
+            .other-cats-grid .other-cat-label {
+              font-size: 0.78rem !important;
+            }
+          }
+          @media (max-width: 380px) {
+            .other-cats-grid {
+              grid-template-columns: 1fr 1fr;
+              gap: 8px;
+            }
+          }
+        `}</style>
+        <div className="other-cats-grid">
+          {[
+            { cat: '💧 Plomería', img: '/cat_plomeria.png', color: '#0284c7', bg: '#e0f2fe' },
+            { cat: '⚡ Electricidad', img: '/cat_electricidad.png', color: '#ca8a04', bg: '#fef9c3' },
+            { cat: '🛠️ Ferretería', img: '/cat_ferreteria.png', color: '#7c3aed', bg: '#ede9fe' },
+            { cat: '🎨 Pintura', img: '/cat_general.png', color: '#059669', bg: '#d1fae5' },
+            { cat: '⚙️ Hierros y Chapas', img: '/cat_hierros_chapas.png', color: '#b45309', bg: '#fef3c7' },
+          ].map(({ cat, img, color, bg }) => (
+            <Link href="/catalogo" key={cat} style={{ textDecoration: 'none' }}>
+              <div style={{
+                background: '#fff',
+                borderRadius: '16px',
+                overflow: 'hidden',
+                border: `2px solid ${bg}`,
+                boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
+                transition: 'transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease',
+                cursor: 'pointer',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = `0 8px 24px ${color}28`; e.currentTarget.style.borderColor = color; }}
+              onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 2px 12px rgba(0,0,0,0.06)'; e.currentTarget.style.borderColor = bg; }}
               >
-                <div style={{ height: '220px', width: '100%', position: 'relative', backgroundColor: '#eee' }}>
-                  <img
-                    src={featImg}
-                    alt={featCat}
-                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-                  />
+                <div style={{ position: 'relative', height: '100px', overflow: 'hidden' }}>
+                  <img src={img} alt={cat} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                  <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(0deg, rgba(0,0,0,0.55) 0%, transparent 60%)' }} />
+                </div>
+                <div style={{ padding: '10px 12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <div style={{
-                    position: 'absolute',
-                    top: '16px',
-                    left: '16px',
-                    background: 'var(--primary)',
-                    color: 'white',
-                    padding: '4px 14px',
-                    borderRadius: '50px',
-                    fontSize: '0.8rem',
-                    fontWeight: 700,
-                    boxShadow: 'var(--shadow-sm)'
+                    width: '28px', height: '28px', borderRadius: '8px',
+                    background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: '1rem', flexShrink: 0,
                   }}>
-                    ⭐ Nuestra Especialidad
+                    {cat.split(' ')[0]}
                   </div>
-                  <div style={{
-                    position: 'absolute', bottom: 0, left: 0, right: 0,
-                    padding: '24px',
-                    background: 'linear-gradient(0deg, rgba(0,0,0,0.8) 0%, transparent 100%)',
-                    color: 'white',
-                  }}>
-                    <h4 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 800, textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>
-                      {featCat}
-                    </h4>
-                    <p style={{ margin: '4px 0 0', opacity: 0.9, fontSize: '0.92rem', maxWidth: '600px' }}>
-                      La prioridad de tu obra. Cemento, cal, áridos, hierros, chapas y todo lo necesario para cimientos y estructura al mejor precio.
-                    </p>
-                  </div>
+                  <span className="other-cat-label" style={{ fontWeight: 600, fontSize: '0.85rem', color: '#1c1917', lineHeight: 1.3 }}>
+                    {cat.replace(/^[^ ]+ /, '')}
+                  </span>
                 </div>
               </div>
             </Link>
-          );
-        })()}
-
-        {/* OTHER CATEGORIES GRID */}
-        <h4 style={{ marginBottom: '16px', color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-          Otras Categorías
-        </h4>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '16px' }}>
-          {Object.entries(CAT_IMAGENES)
-            .filter(([cat]) => cat !== "🧱 Materiales de Construcción")
-            .map(([cat, img]) => (
-              <Link href="/catalogo" key={cat} style={{ textDecoration: 'none' }}>
-                <div className="card" style={{ padding: 0, overflow: 'hidden', cursor: 'pointer', boxShadow: 'var(--shadow-sm)', transition: 'transform 0.2s, box-shadow 0.2s' }}>
-                  <div style={{ position: 'relative', height: '120px', backgroundColor: '#eee' }}>
-                    <img
-                      src={img}
-                      alt={cat}
-                      style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-                    />
-                    <div style={{
-                      position: 'absolute', bottom: 0, left: 0, right: 0,
-                      padding: '10px 14px',
-                      background: 'linear-gradient(0deg, rgba(0,0,0,0.75) 0%, transparent 100%)',
-                      color: 'white',
-                    }}>
-                      <h4 style={{ margin: 0, fontSize: '0.9rem', fontWeight: 600 }}>{cat}</h4>
-                    </div>
-                  </div>
-                </div>
-              </Link>
-            ))}
-        </div>
-      </section>
-
-      {/* BRAND TRUST BAR */}
-      <section style={{
-        width: '100vw', marginLeft: 'calc(-50vw + 50%)',
-        background: 'var(--bg-color)', padding: '48px 20px', textAlign: 'center',
-        borderTop: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)',
-        marginBottom: '-50px',
-      }}>
-        <h3 style={{ fontSize: '1.2rem', color: 'var(--secondary)', marginBottom: '20px', fontWeight: 600 }}>
-          Trabajamos con las mejores marcas
-        </h3>
-        <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '16px' }}>
-          {BRANDS.map(brand => (
-            <span key={brand} style={{
-              background: 'white', border: '1px solid var(--border-color)',
-              padding: '8px 20px', borderRadius: '50px', fontWeight: 600,
-              color: 'var(--secondary)', fontSize: '0.95rem',
-              boxShadow: 'var(--shadow-sm)',
-            }}>
-              {brand}
-            </span>
           ))}
         </div>
-        <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-          Orgullosamente afiliados a <strong style={{ color: 'var(--primary)' }}>Disensa</strong>
-        </p>
       </section>
 
       {/* TOAST */}

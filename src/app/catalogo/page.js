@@ -23,6 +23,8 @@ export default function Catalogo() {
   const { addToCart } = useCart();
   const [quantities, setQuantities] = useState({});
   const [toast, setToast] = useState({ show: false, message: "" });
+  const [error, setError] = useState(false);
+  const [reloadTrigger, setReloadTrigger] = useState(0);
 
   const [aridoTipo, setAridoTipo] = useState("Arena Mediana");
   const [aridoUnidad, setAridoUnidad] = useState("m3");
@@ -67,17 +69,41 @@ export default function Catalogo() {
   };
 
   useEffect(() => {
-    fetch("/api/catalogo")
-      .then((res) => res.json())
-      .then((data) => {
-        if (Array.isArray(data)) setArticulos(data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error(err);
-        setLoading(false);
-      });
-  }, []);
+    let retries = 0;
+    const fetchData = () => {
+      setError(false);
+      setLoading(true);
+      fetch("/api/catalogo")
+        .then((res) => {
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          return res.json();
+        })
+        .then((data) => {
+          if (Array.isArray(data)) {
+            setArticulos(data);
+            setError(false);
+          } else {
+            throw new Error("Invalid data format");
+          }
+          setLoading(false);
+        })
+        .catch((err) => {
+          console.error('Fetch attempt failed:', err);
+          retries++;
+          if (retries < 3) {
+            setTimeout(fetchData, 1500);
+          } else {
+            setError(true);
+            setLoading(false);
+          }
+        });
+    };
+    fetchData();
+  }, [reloadTrigger]);
+
+  const handleRetry = () => {
+    setReloadTrigger(prev => prev + 1);
+  };
 
   const categorias = useMemo(() => {
     const catMap = {};
@@ -173,27 +199,15 @@ export default function Catalogo() {
   );
 
   const renderAridosWidget = () => (
-    <div className="card animate-fade-in" style={{
-      display: 'flex',
-      flexDirection: 'row',
-      gap: '24px',
-      padding: '0',
-      overflow: 'hidden',
+    <div className="card animate-fade-in aridos-widget" style={{
       borderLeft: '4px solid var(--primary)',
       marginBottom: '32px',
-      flexWrap: 'wrap',
       background: 'var(--surface-color)',
       boxShadow: 'var(--shadow-md)',
-      width: '100%',
       animation: 'fadeInUp 0.4s ease-out'
     }}>
       {/* Image container */}
-      <div style={{
-        flex: '1 1 300px',
-        minHeight: '240px',
-        position: 'relative',
-        backgroundColor: '#eee'
-      }}>
+      <div className="aridos-widget-img">
         <img
           src="/aridos_display.png"
           alt="Áridos y Cantera"
@@ -216,13 +230,7 @@ export default function Catalogo() {
       </div>
 
       {/* Control panel */}
-      <div style={{
-        flex: '1 1 350px',
-        padding: '32px',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center'
-      }}>
+      <div className="aridos-widget-controls">
         <h3 style={{ fontSize: '1.4rem', color: 'var(--secondary)', marginBottom: '8px', marginTop: 0 }}>
           Selector de Áridos Premium ⏳
         </h3>
@@ -354,6 +362,59 @@ export default function Catalogo() {
           0% { background-position: -200% 0; }
           100% { background-position: 200% 0; }
         }
+        .aridos-widget {
+          display: flex;
+          flex-direction: row;
+          gap: 24px;
+          padding: 0;
+          overflow: hidden;
+          width: 100%;
+        }
+        .aridos-widget-img {
+          flex: 1 1 300px;
+          min-height: 240px;
+          position: relative;
+          background-color: #eee;
+        }
+        .aridos-widget-controls {
+          flex: 1 1 350px;
+          padding: 32px;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+        }
+        .cat-featured-card { transition: transform 0.2s, box-shadow 0.2s; }
+        .cat-featured-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(192,22,14,0.18) !important; }
+        .cat-other-card { transition: transform 0.2s, box-shadow 0.2s; }
+        .cat-other-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.12) !important; }
+        @media (max-width: 768px) {
+          .aridos-widget {
+            flex-direction: column;
+          }
+          .aridos-widget-img {
+            flex: none;
+            min-height: 180px;
+            max-height: 200px;
+          }
+          .aridos-widget-controls {
+            flex: none;
+            padding: 20px;
+          }
+          .aridos-widget-controls h3 {
+            font-size: 1.15rem !important;
+          }
+          .cat-featured-card > div:first-child {
+            height: 180px !important;
+          }
+        }
+        @media (max-width: 480px) {
+          .aridos-widget-controls {
+            padding: 16px;
+          }
+          .aridos-widget-img {
+            max-height: 160px;
+          }
+        }
       `}</style>
 
       <div className="page-header">
@@ -425,6 +486,20 @@ export default function Catalogo() {
               </div>
             </div>
           ))}
+        </div>
+      ) : error ? (
+        /* ERROR STATE */
+        <div className="card" style={{ textAlign: 'center', padding: '48px 24px', maxWidth: '500px', margin: '32px auto', animation: 'fadeInUp 0.4s ease-out' }}>
+          <div style={{ fontSize: '3.5rem', marginBottom: '16px' }}>⚠️</div>
+          <h3 style={{ fontSize: '1.3rem', color: 'var(--secondary)', marginBottom: '12px' }}>
+            No se pudo cargar el catálogo
+          </h3>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', marginBottom: '24px', lineHeight: 1.5 }}>
+            Hubo un problema de conexión al obtener los productos del servidor. Por favor, reintentá.
+          </p>
+          <button className="btn" onClick={handleRetry} style={{ padding: '12px 32px', borderRadius: '50px', fontWeight: 700 }}>
+            🔄 Reintentar Carga
+          </button>
         </div>
       ) : searchTerm.length >= 3 && !selectedCategory ? (
         /* GLOBAL SEARCH RESULTS */

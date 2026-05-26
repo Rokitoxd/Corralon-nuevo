@@ -27,7 +27,7 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="es" className={inter.variable}>
+    <html lang="es" className={inter.variable} data-scroll-behavior="smooth">
       <body className={inter.className}>
         <CartProvider>
           {/* ── Header (client component for interactivity) ── */}
@@ -35,7 +35,40 @@ export default function RootLayout({ children }) {
 
           {/* ── Info Strip ── */}
           <div className="info-strip" role="banner">
-            🚀 ¿Cómo comprar? <span>•</span> 1️⃣ Armá tu pedido <span>➔</span> 2️⃣ Revisá tu carrito <span>➔</span> 3️⃣ Envialo por WhatsApp
+            <span>🚀</span> ¿Cómo comprar? <span>•</span>
+            1️⃣ Elegí tus materiales <span>→</span>
+            2️⃣ Revisá tu carrito <span>→</span>
+            3️⃣ Enviá tu pedido por <strong>WhatsApp</strong>
+          </div>
+
+          {/* ── Brand Marquee Strip ── */}
+          <div className="brand-strip" aria-label="Marcas que trabajamos">
+            <div className="brand-marquee">
+              {/* Two identical sets for seamless infinite scroll */}
+              {[0, 1].map((set) => (
+                <div key={set} style={{ display: 'contents' }}>
+                  <div className="brand-marquee-label">Nuestras Marcas</div>
+                  <div className="brand-marquee-item disensa">
+                    <img src="/Logo-Disensa.png" alt="Disensa" />
+                  </div>
+                  <div className="brand-marquee-item">
+                    <img src="/Holcim_Logo_2021_sRGB.png" alt="Holcim" />
+                  </div>
+                  <div className="brand-marquee-item">
+                    <img src="/amanco-logo-png_seeklogo-203056.png" alt="Amanco" />
+                  </div>
+                  <div className="brand-marquee-item">
+                    <img src="/ferrum-seeklogo.png" alt="Ferrum" />
+                  </div>
+                  <div className="brand-marquee-item">
+                    <img src="/tersuave-seeklogo.png" alt="Tersuave" />
+                  </div>
+                  <div className="brand-marquee-item">
+                    <img src="/Weber Saint Gobain.png" alt="Weber Saint-Gobain" />
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
 
           {/* ── Main Content ── */}

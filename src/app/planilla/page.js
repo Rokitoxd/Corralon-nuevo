@@ -97,7 +97,7 @@ export default function Planilla() {
 
       {/* FORM CARD */}
       <div className="card" style={{
-        maxWidth: '560px', margin: '0 auto', padding: '36px',
+        maxWidth: '560px', margin: '0 auto', padding: 'clamp(16px, 5vw, 36px)',
         animation: 'fadeInUp 0.4s ease-out',
       }}>
         {!isSuccess ? (

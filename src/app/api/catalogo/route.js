@@ -3,6 +3,10 @@ import * as xlsx from 'xlsx';
 import path from 'path';
 import fs from 'fs';
 
+// Server-side in-memory cache
+let cachedData = null;
+let cachedMtime = 0;
+
 export async function GET() {
   try {
     const basePath = process.cwd();
@@ -11,16 +15,27 @@ export async function GET() {
     const xlsxPath = path.join(basePath, 'articulos_stock_proveedores.xlsx');
     const csvPath = path.join(basePath, 'articulos_stock_proveedores.csv');
     
-    let workbook;
+    let dataPath = null;
     if (fs.existsSync(xlsxPath)) {
-      const fileBuffer = fs.readFileSync(xlsxPath);
-      workbook = xlsx.read(fileBuffer, { type: 'buffer' });
+      dataPath = xlsxPath;
     } else if (fs.existsSync(csvPath)) {
-      const fileBuffer = fs.readFileSync(csvPath);
-      workbook = xlsx.read(fileBuffer, { type: 'buffer' });
+      dataPath = csvPath;
     } else {
       return NextResponse.json({ error: 'Data file not found' }, { status: 404 });
     }
+    
+    // Get file modification time for cache validation
+    const stats = fs.statSync(dataPath);
+    const mtime = stats.mtimeMs;
+    
+    // Return cached data if file hasn't changed
+    if (cachedData && cachedMtime === mtime) {
+      return NextResponse.json(cachedData);
+    }
+    
+    // Read and parse file
+    const fileBuffer = fs.readFileSync(dataPath);
+    const workbook = xlsx.read(fileBuffer, { type: 'buffer' });
     
     const sheetName = workbook.SheetNames[0];
     const sheet = workbook.Sheets[sheetName];
@@ -41,6 +56,12 @@ export async function GET() {
         let art = String(row['ARTICULO'] || '').trim();
         if (!art || art === 'nan' || !isNaN(art)) return null;
         
+        // Filter out uncategorized items (General / Otros)
+        const cat = row['CATEGORIA_WEB'] ? String(row['CATEGORIA_WEB']).trim() : '';
+        if (!cat || cat === '📦 General / Otros' || cat.toLowerCase().includes('general') || cat.toLowerCase().includes('otros')) {
+          return null;
+        }
+        
         // Title case and clean units
         art = art.toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
         art = art.replace(/\sX\s/gi, ' x ')
@@ -55,13 +76,17 @@ export async function GET() {
         return {
           ARTICULO: art,
           ITEM: row['ITEM'] || '',
-          CATEGORIA_WEB: row['CATEGORIA_WEB'] || '📦 General / Otros',
+          CATEGORIA_WEB: cat,
           SUBCATEGORIA_WEB: row['SUBCATEGORIA_WEB'] || 'Otros',
           STOCK: stockVal
         };
       })
       .filter(Boolean)
       .sort((a, b) => a.ARTICULO.localeCompare(b.ARTICULO));
+
+    // Update cache
+    cachedData = cleanedData;
+    cachedMtime = mtime;
 
     return NextResponse.json(cleanedData);
   } catch (error) {
