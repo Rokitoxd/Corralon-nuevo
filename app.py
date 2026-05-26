@@ -1139,25 +1139,67 @@ with tab_minorista:
                     if subcat_actual:
                         df_cat = df_cat[df_cat['SUBCATEGORIA_WEB'] == subcat_actual]
                         
-                    buscar_prod = st.text_input("🔍 Filtrar dentro de esta sección:", key=f"busqueda_{cat_actual}_{subcat_actual}").strip().lower()
-                    if buscar_prod:
-                        df_cat = df_cat[df_cat['ARTICULO'].str.lower().str.contains(buscar_prod, na=False)]
+                    if cat_actual == '🧱 Materiales de Construcción' and subcat_actual == 'Aridos':
+                        st.write("Seleccioná el tipo de árido y el formato de venta:")
                         
-                    st.divider()
+                        col_tipo, col_formato = st.columns(2)
+                        with col_tipo:
+                            tipo_arido = st.radio("Tipo de Árido", ["Arena Mediana", "Ripio Bruto", "Ripio Lavado"], key="radio_tipo_arido")
+                        with col_formato:
+                            formato_arido = st.radio("Formato", ["x Bolsa", "por m3"], key="radio_formato_arido")
+                            
+                        # Mapear la selección a artículos de la base de datos
+                        mapeo = {
+                            ("Arena Mediana", "x Bolsa"): "ARENA MEDIANA X BOLSA",
+                            ("Arena Mediana", "por m3"): "ARENA MEDIANA  X M3",
+                            ("Ripio Bruto", "x Bolsa"): "RIPIO BRUTO X BOLSA",
+                            ("Ripio Bruto", "por m3"): "RIPIO BRUTO FINO X M3",
+                            ("Ripio Lavado", "x Bolsa"): "RIPIO LAVADO 1 - 3 X BOLSA",
+                            ("Ripio Lavado", "por m3"): "RIPIO LAVADO 1 - 3 X M3"
+                        }
+                        
+                        articulo_buscar = mapeo.get((tipo_arido, formato_arido))
+                        df_filtrado = df_cat[df_cat['ARTICULO'].str.contains(articulo_buscar, case=False, na=False, regex=False)]
+                        
+                        st.divider()
+                        
+                        if not df_filtrado.empty:
+                            for index, row in df_filtrado.iterrows():
+                                articulo = row['ARTICULO']
+                                with st.container(border=True):
+                                    c_nombre, c_input, c_btn = st.columns([5, 2, 2], vertical_alignment="bottom")
+                                    with c_nombre:
+                                        st.write(f"**{articulo}**")
+                                    input_key = f"cant_arido_{index}"
+                                    with c_input:
+                                        cant = st.number_input("Cant.", min_value=1, value=1, step=1, key=input_key, label_visibility="collapsed")
+                                    with c_btn:
+                                        if st.button("➕", key=f"btn_arido_{index}", width='stretch'):
+                                            st.session_state.carrito.append({"Articulo": str(articulo), "Cantidad": int(cant)})
+                                            st.rerun()
+                        else:
+                            st.warning("El formato seleccionado no se encuentra disponible actualmente.")
 
-                    for index, row in df_cat.iterrows():
-                        articulo = row['ARTICULO']
-                        with st.container(border=True):
-                            c_nombre, c_input, c_btn = st.columns([5, 2, 2], vertical_alignment="bottom")
-                            with c_nombre:
-                                st.write(f"**{articulo}**")
-                            input_key = f"cant_{index}_{cat_actual}"
-                            with c_input:
-                                cant = st.number_input("Cant.", min_value=1, value=1, step=1, key=input_key, label_visibility="collapsed")
-                            with c_btn:
-                                if st.button("➕", key=f"btn_{index}_{cat_actual}", width='stretch'):
-                                    st.session_state.carrito.append({"Articulo": str(articulo), "Cantidad": int(cant)})
-                                    st.rerun()
+                    else:
+                        buscar_prod = st.text_input("🔍 Filtrar dentro de esta sección:", key=f"busqueda_{cat_actual}_{subcat_actual}").strip().lower()
+                        if buscar_prod:
+                            df_cat = df_cat[df_cat['ARTICULO'].str.lower().str.contains(buscar_prod, na=False)]
+                            
+                        st.divider()
+
+                        for index, row in df_cat.iterrows():
+                            articulo = row['ARTICULO']
+                            with st.container(border=True):
+                                c_nombre, c_input, c_btn = st.columns([5, 2, 2], vertical_alignment="bottom")
+                                with c_nombre:
+                                    st.write(f"**{articulo}**")
+                                input_key = f"cant_{index}_{cat_actual}"
+                                with c_input:
+                                    cant = st.number_input("Cant.", min_value=1, value=1, step=1, key=input_key, label_visibility="collapsed")
+                                with c_btn:
+                                    if st.button("➕", key=f"btn_{index}_{cat_actual}", width='stretch'):
+                                        st.session_state.carrito.append({"Articulo": str(articulo), "Cantidad": int(cant)})
+                                        st.rerun()
 
 # --- PESTAÑA 4: INTRANET ---
 with tab_admin:
