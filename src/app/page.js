@@ -78,20 +78,20 @@ export default function Home() {
       <section style={{
         width: '100vw',
         marginLeft: 'calc(-50vw + 50%)',
-        background: 'linear-gradient(135deg, #7f0000 0%, #b71c1c 30%, #e53935 60%, #b71c1c 100%)',
-        backgroundSize: '300% 300%',
-        animation: 'heroGradient 8s ease infinite',
-        padding: '80px 20px',
+        backgroundImage: 'linear-gradient(rgba(127, 0, 0, 0.82), rgba(26, 26, 46, 0.95)), url("/storefront_larural.png")',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        padding: '120px 20px',
         textAlign: 'center',
         color: 'white',
         marginTop: '-30px',
       }}>
         <div style={{ maxWidth: '800px', margin: '0 auto', animation: 'fadeInUp 0.8s ease-out' }}>
-          <h1 style={{ fontSize: 'clamp(2rem, 5vw, 3.2rem)', fontWeight: 800, marginBottom: '16px', lineHeight: 1.2 }}>
+          <h1 style={{ fontSize: 'clamp(2.2rem, 5vw, 3.5rem)', fontWeight: 800, marginBottom: '16px', lineHeight: 1.2, textShadow: '0 2px 10px rgba(0,0,0,0.3)' }}>
             Todo para tu obra en un solo lugar
           </h1>
-          <p style={{ fontSize: 'clamp(1rem, 2.5vw, 1.25rem)', opacity: 0.9, marginBottom: '32px', maxWidth: '600px', margin: '0 auto 32px' }}>
-            Materiales de construcción, ferretería, plomería y más. Envíos a toda la provincia de Tucumán.
+          <p style={{ fontSize: 'clamp(1.05rem, 2.5vw, 1.3rem)', opacity: 0.95, marginBottom: '32px', maxWidth: '650px', margin: '0 auto 32px', textShadow: '0 1px 5px rgba(0,0,0,0.3)' }}>
+            Materiales de construcción, ferretería, plomería y más. Envíos con flota propia a toda la provincia de Tucumán.
           </p>
           <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap' }}>
             <Link href="/catalogo" style={{
@@ -103,6 +103,7 @@ export default function Home() {
               fontSize: '1.05rem',
               transition: 'transform 0.2s, box-shadow 0.2s',
               display: 'inline-block',
+              boxShadow: '0 4px 15px rgba(0,0,0,0.15)'
             }}>
               Ver Catálogo
             </Link>
@@ -118,6 +119,7 @@ export default function Home() {
               alignItems: 'center',
               gap: '8px',
               animation: 'pulseGlow 2s infinite',
+              boxShadow: '0 4px 15px rgba(37,211,102,0.3)'
             }}>
               💬 Consultar por WhatsApp
             </a>
@@ -154,28 +156,57 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ASESORAMIENTO PROFESIONAL */}
+      {/* ASESORAMIENTO Y LOGÍSTICA DE ENVÍOS */}
       <section style={{ marginBottom: '60px' }}>
         <div className="card" style={{
-          display: 'flex', gap: '24px', alignItems: 'center', padding: '32px',
-          borderLeft: '4px solid var(--primary)', flexWrap: 'wrap',
+          display: 'flex',
+          gap: '32px',
+          alignItems: 'stretch',
+          padding: '0',
+          overflow: 'hidden',
+          flexWrap: 'wrap',
+          background: 'var(--surface-color)',
+          boxShadow: 'var(--shadow-md)',
+          borderLeft: '4px solid var(--primary)',
         }}>
-          <div style={{ fontSize: '3.5rem', flexShrink: 0 }}>👷</div>
-          <div style={{ flex: 1, minWidth: '240px' }}>
-            <h3 style={{ fontSize: '1.4rem', color: 'var(--secondary)', marginBottom: '8px' }}>
-              Asesoramiento Profesional Gratuito
+          {/* Text content column */}
+          <div style={{ flex: '1 1 350px', padding: '40px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+            <h3 style={{ fontSize: '1.5rem', color: 'var(--secondary)', marginBottom: '12px', marginTop: 0 }}>
+              Asesoramiento Profesional y Envíos a Obra 🚚
             </h3>
-            <p style={{ color: 'var(--text-muted)', marginBottom: '16px', lineHeight: 1.6 }}>
-              Nuestro equipo de asesores te ayuda a calcular materiales, elegir la mejor opción para tu obra
-              y optimizar tu presupuesto. Sin compromiso.
+            <p style={{ color: 'var(--text-muted)', marginBottom: '20px', lineHeight: 1.6, fontSize: '0.95rem' }}>
+              Nuestro equipo te ayuda a calcular materiales y optimizar tu presupuesto sin cargo. Además, contamos con **flota propia de camiones planos y grúas** para llevar todo directo a tu obra de forma rápida y segura en cualquier punto de Tucumán.
             </p>
-            <a href={`https://wa.me/${tel_whatsapp}`} target="_blank" rel="noopener noreferrer"
-              className="btn" style={{ backgroundColor: '#25D366', display: 'inline-flex', alignItems: 'center', gap: '8px', borderRadius: '50px' }}>
-              💬 Hablar con un asesor
-            </a>
+            <ul style={{ margin: '0 0 24px 0', padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <li style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', color: 'var(--text-main)', fontWeight: 500 }}>
+                ✔️ Entregas programadas en menos de 24hs
+              </li>
+              <li style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', color: 'var(--text-main)', fontWeight: 500 }}>
+                ✔️ Cobertura en toda la provincia (San Miguel, Yerba Buena, Tafí Viejo, etc.)
+              </li>
+              <li style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', color: 'var(--text-main)', fontWeight: 500 }}>
+                ✔️ Asistencia directa de arquitectos en obra
+              </li>
+            </ul>
+            <div>
+              <a href={`https://wa.me/${tel_whatsapp}`} target="_blank" rel="noopener noreferrer"
+                className="btn" style={{ backgroundColor: '#25D366', display: 'inline-flex', alignItems: 'center', gap: '8px', borderRadius: '50px', padding: '12px 28px', fontSize: '0.95rem' }}>
+                💬 Consultar con un Asesor
+              </a>
+            </div>
+          </div>
+          
+          {/* Delivery truck image column */}
+          <div style={{ flex: '1 1 300px', minHeight: '300px', position: 'relative', backgroundColor: '#eee' }}>
+            <img
+              src="/delivery_truck.png"
+              alt="Camión de Reparto Corralón La Rural"
+              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+            />
           </div>
         </div>
       </section>
+
 
       {/* OFERTAS DESTACADAS */}
       <section style={{ marginBottom: '60px' }}>

@@ -24,6 +24,48 @@ export default function Catalogo() {
   const [quantities, setQuantities] = useState({});
   const [toast, setToast] = useState({ show: false, message: "" });
 
+  const [aridoTipo, setAridoTipo] = useState("Arena Mediana");
+  const [aridoUnidad, setAridoUnidad] = useState("m3");
+  const [aridoQty, setAridoQty] = useState(1);
+
+  useEffect(() => {
+    if (aridoTipo === "Ripio Bruto Fino") {
+      setAridoUnidad("m3");
+    }
+  }, [aridoTipo]);
+
+  const matchedArido = useMemo(() => {
+    let searchTerms = [];
+    if (aridoTipo === "Arena Mediana") {
+      searchTerms = ["arena mediana", aridoUnidad === "m3" ? "m3" : "bolsa"];
+    } else if (aridoTipo === "Ripio Bruto") {
+      if (aridoUnidad === "m3") {
+        searchTerms = ["ripio bruto mediano", "m3"];
+      } else {
+        searchTerms = ["ripio bruto", "bolsa"];
+      }
+    } else if (aridoTipo === "Ripio Bruto Fino") {
+      searchTerms = ["ripio bruto fino", "m3"];
+    } else if (aridoTipo === "Ripio Lavado") {
+      searchTerms = ["ripio lavado", aridoUnidad === "m3" ? "m3" : "bolsa"];
+    }
+
+    return articulos.find(a => {
+      const nameLower = a.ARTICULO.toLowerCase();
+      if (nameLower.includes("viaje") || nameLower.includes("carretilla")) return false;
+      return searchTerms.every(term => nameLower.includes(term));
+    });
+  }, [aridoTipo, aridoUnidad, articulos]);
+
+  const handleAddArido = () => {
+    if (matchedArido) {
+      addToCart(matchedArido, aridoQty);
+      showToast(`✓ Agregado: ${aridoQty} × ${matchedArido.ARTICULO}`);
+    } else {
+      showToast(`⚠️ Este producto no se encuentra disponible.`);
+    }
+  };
+
   useEffect(() => {
     fetch("/api/catalogo")
       .then((res) => res.json())
@@ -126,6 +168,177 @@ export default function Catalogo() {
           aria-label={`Cantidad de ${item.ARTICULO}`}
         />
         <button className="btn" onClick={() => handleAdd(item)}>Agregar</button>
+      </div>
+    </div>
+  );
+
+  const renderAridosWidget = () => (
+    <div className="card animate-fade-in" style={{
+      display: 'flex',
+      flexDirection: 'row',
+      gap: '24px',
+      padding: '0',
+      overflow: 'hidden',
+      borderLeft: '4px solid var(--primary)',
+      marginBottom: '32px',
+      flexWrap: 'wrap',
+      background: 'var(--surface-color)',
+      boxShadow: 'var(--shadow-md)',
+      width: '100%',
+      animation: 'fadeInUp 0.4s ease-out'
+    }}>
+      {/* Image container */}
+      <div style={{
+        flex: '1 1 300px',
+        minHeight: '240px',
+        position: 'relative',
+        backgroundColor: '#eee'
+      }}>
+        <img
+          src="/aridos_display.png"
+          alt="Áridos y Cantera"
+          style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+        />
+        <div style={{
+          position: 'absolute',
+          top: '16px',
+          left: '16px',
+          background: 'var(--primary)',
+          color: 'white',
+          padding: '4px 12px',
+          borderRadius: '50px',
+          fontSize: '0.8rem',
+          fontWeight: 700,
+          boxShadow: 'var(--shadow-sm)'
+        }}>
+          Directo de Cantera ⛰️
+        </div>
+      </div>
+
+      {/* Control panel */}
+      <div style={{
+        flex: '1 1 350px',
+        padding: '32px',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center'
+      }}>
+        <h3 style={{ fontSize: '1.4rem', color: 'var(--secondary)', marginBottom: '8px', marginTop: 0 }}>
+          Selector de Áridos Premium ⏳
+        </h3>
+        <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '24px', lineHeight: 1.5 }}>
+          Elegí el material y la presentación que necesitás para tu obra. Venta en metros cúbicos y bolsas únicamente.
+        </p>
+
+        <div style={{ display: 'flex', gap: '16px', marginBottom: '20px', flexWrap: 'wrap' }}>
+          {/* Material Select */}
+          <div style={{ flex: 1, minWidth: '150px' }}>
+            <label style={{ display: 'block', marginBottom: '8px', fontWeight: 600, fontSize: '0.85rem', color: 'var(--secondary)' }}>
+              Material
+            </label>
+            <select
+              value={aridoTipo}
+              onChange={(e) => setAridoTipo(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '12px',
+                borderRadius: '8px',
+                border: '1px solid var(--border-color)',
+                backgroundColor: 'white',
+                fontWeight: 500,
+                color: 'var(--text-main)',
+                cursor: 'pointer',
+                outline: 'none',
+                boxShadow: 'var(--shadow-sm)'
+              }}
+            >
+              <option value="Arena Mediana">Arena Mediana ⏳</option>
+              <option value="Ripio Bruto">Ripio Bruto 🪨</option>
+              <option value="Ripio Bruto Fino">Ripio Bruto Fino 🪨</option>
+              <option value="Ripio Lavado">Ripio Lavado ✨</option>
+            </select>
+          </div>
+
+          {/* Unit Select */}
+          <div style={{ flex: 1, minWidth: '120px' }}>
+            <label style={{ display: 'block', marginBottom: '8px', fontWeight: 600, fontSize: '0.85rem', color: 'var(--secondary)' }}>
+              Presentación
+            </label>
+            <select
+              value={aridoUnidad}
+              onChange={(e) => setAridoUnidad(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '12px',
+                borderRadius: '8px',
+                border: '1px solid var(--border-color)',
+                backgroundColor: 'white',
+                fontWeight: 500,
+                color: 'var(--text-main)',
+                cursor: 'pointer',
+                outline: 'none',
+                boxShadow: 'var(--shadow-sm)'
+              }}
+            >
+              <option value="m3">Metro Cúbico (m³)</option>
+              {aridoTipo !== "Ripio Bruto Fino" && <option value="bolsa">Bolsa</option>}
+            </select>
+          </div>
+        </div>
+
+        {/* Price display and CTA */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginTop: '8px',
+          borderTop: '1px solid var(--border-color)',
+          paddingTop: '20px',
+          flexWrap: 'wrap',
+          gap: '16px'
+        }}>
+          <div>
+            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block' }}>
+              Producto Seleccionado:
+            </span>
+            <span style={{ fontWeight: 600, color: 'var(--secondary)', fontSize: '0.95rem' }}>
+              {matchedArido ? matchedArido.ARTICULO : "No disponible"}
+            </span>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <input
+              type="number"
+              min="1"
+              value={aridoQty}
+              onChange={(e) => setAridoQty(Math.max(1, parseInt(e.target.value) || 1))}
+              style={{
+                width: '70px',
+                padding: '12px',
+                textAlign: 'center',
+                borderRadius: '8px',
+                border: '1px solid var(--border-color)',
+                fontWeight: 600,
+                boxShadow: 'var(--shadow-sm)'
+              }}
+            />
+            <button
+              className="btn"
+              onClick={handleAddArido}
+              disabled={!matchedArido}
+              style={{
+                padding: '12px 24px',
+                borderRadius: '8px',
+                fontWeight: 700,
+                opacity: matchedArido ? 1 : 0.6,
+                cursor: matchedArido ? 'pointer' : 'not-allowed',
+                boxShadow: matchedArido ? '0 4px 12px rgba(183,28,28,0.2)' : 'none',
+              }}
+            >
+              Agregar
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -363,20 +576,28 @@ export default function Catalogo() {
           ) : (
             Object.entries(itemsBySubcategory)
               .sort(([a], [b]) => a.localeCompare(b))
-              .map(([subcat, items]) => (
-                <div key={subcat} style={{ marginBottom: '40px' }}>
-                  <h4 style={{
-                    fontSize: '1.2rem', color: 'var(--primary)',
-                    borderLeft: '3px solid var(--primary)',
-                    paddingLeft: '15px', paddingBottom: '8px', marginBottom: '20px',
-                  }}>
-                    {subcat} <span style={{ color: 'var(--text-muted)', fontWeight: 400, fontSize: '0.9rem' }}>· {items.length} productos</span>
-                  </h4>
-                  <div className="grid">
-                    {items.map((item, idx) => renderProductCard(item, `${subcat}-${idx}`))}
+              .map(([subcat, items]) => {
+                const isAridos = subcat.toLowerCase().includes("arido");
+                return (
+                  <div key={subcat} style={{ marginBottom: '40px' }}>
+                    <h4 style={{
+                      fontSize: '1.2rem', color: 'var(--primary)',
+                      borderLeft: '3px solid var(--primary)',
+                      paddingLeft: '15px', paddingBottom: '8px', marginBottom: '20px',
+                    }}>
+                      {subcat} <span style={{ color: 'var(--text-muted)', fontWeight: 400, fontSize: '0.9rem' }}>· {items.length} productos</span>
+                    </h4>
+                    
+                    {isAridos ? (
+                      renderAridosWidget()
+                    ) : (
+                      <div className="grid">
+                        {items.map((item, idx) => renderProductCard(item, `${subcat}-${idx}`))}
+                      </div>
+                    )}
                   </div>
-                </div>
-              ))
+                );
+              })
           )}
         </section>
       )}
