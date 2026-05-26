@@ -2,25 +2,25 @@
 
 import { useState, useMemo } from "react";
 
-// Material data & prices in USD (Column K of Excel)
+// Material metadata (Column H and J of Excel)
 const MATERIAL_METADATA = {
-  cemento: { name: "Cemento (Bolsas x 25kg)", unit: "bol.", priceUSD: 4.60, emoji: "🏗️", category: "Bolsas" },
-  hercal: { name: "Hercal / Cal (Bolsas)", unit: "bol.", priceUSD: 4.20, emoji: "⚪", category: "Bolsas" },
-  arena: { name: "Arena Mediana (m³)", unit: "m³", priceUSD: 24.76, emoji: "⏳", category: "Áridos" },
-  ripio: { name: "Ripio Lavado / Cantera (m³)", unit: "m³", priceUSD: 46.00, emoji: "🪨", category: "Áridos" },
-  ripioBruto: { name: "Ripio Bruto / Estabilizado (m³)", unit: "m³", priceUSD: 24.76, emoji: "⚙️", category: "Áridos" },
-  ladrilloComun: { name: "Ladrillo Común (unidades)", unit: "ud.", priceUSD: 0.194, emoji: "🧱", category: "Ladrillos" },
-  hueco12: { name: "Ladrillo Hueco de 12 (unidades)", unit: "ud.", priceUSD: 0.54, emoji: "🧱", category: "Ladrillos" },
-  hueco18: { name: "Ladrillo Hueco de 18 (unidades)", unit: "ud.", priceUSD: 0.729, emoji: "🧱", category: "Ladrillos" },
-  malla: { name: "Malla de Acero (unidades de 12m²)", unit: "ud.", priceUSD: 95.00, emoji: "🔗", category: "Hierros" },
-  bovedilla12: { name: "Bovedilla de 12 (unidades)", unit: "ud.", priceUSD: 4.64, emoji: "📦", category: "Ladrillos" },
-  bovedilla16: { name: "Bovedilla de 16 (unidades)", unit: "ud.", priceUSD: 6.47, emoji: "📦", category: "Ladrillos" },
-  fino: { name: "Revoque Fino (Bolsas)", unit: "bol.", priceUSD: 5.63, emoji: "✨", category: "Bolsas" },
-  adhesivo: { name: "Pegamento / Adhesivo Cerámico (Bolsas)", unit: "bol.", priceUSD: 4.60, emoji: "🥣", category: "Bolsas" },
-  stopkal: { name: "Stopkal Impermeabilizante (litros)", unit: "lts.", priceUSD: 0, emoji: "💧", category: "Aditivos" }, // Unpriced in Excel
-  hierro6: { name: "Hierro del 6 (barras x 12m)", unit: "ud.", priceUSD: 4.15, emoji: "🔩", category: "Hierros" },
-  hierro10: { name: "Hierro del 10 (barras x 12m)", unit: "ud.", priceUSD: 10.98, emoji: "🔩", category: "Hierros" },
-  hueco8: { name: "Ladrillo Hueco de 8 (unidades)", unit: "ud.", priceUSD: 0.41, emoji: "🧱", category: "Ladrillos" },
+  cemento: { name: "Cemento (Bolsas x 25kg)", unit: "bol.", emoji: "🏗️", category: "Bolsas" },
+  hercal: { name: "Hercal / Cal (Bolsas)", unit: "bol.", emoji: "⚪", category: "Bolsas" },
+  arena: { name: "Arena Mediana (m³)", unit: "m³", emoji: "⏳", category: "Áridos" },
+  ripio: { name: "Ripio Lavado / Cantera (m³)", unit: "m³", emoji: "🪨", category: "Áridos" },
+  ripioBruto: { name: "Ripio Bruto / Estabilizado (m³)", unit: "m³", emoji: "⚙️", category: "Áridos" },
+  ladrilloComun: { name: "Ladrillo Común (unidades)", unit: "ud.", emoji: "🧱", category: "Ladrillos" },
+  hueco12: { name: "Ladrillo Hueco de 12 (unidades)", unit: "ud.", emoji: "🧱", category: "Ladrillos" },
+  hueco18: { name: "Ladrillo Hueco de 18 (unidades)", unit: "ud.", emoji: "🧱", category: "Ladrillos" },
+  malla: { name: "Malla de Acero (unidades de 12m²)", unit: "ud.", emoji: "🔗", category: "Hierros" },
+  bovedilla12: { name: "Bovedilla de 12 (unidades)", unit: "ud.", emoji: "📦", category: "Ladrillos" },
+  bovedilla16: { name: "Bovedilla de 16 (unidades)", unit: "ud.", emoji: "📦", category: "Ladrillos" },
+  fino: { name: "Revoque Fino (Bolsas)", unit: "bol.", emoji: "✨", category: "Bolsas" },
+  adhesivo: { name: "Pegamento / Adhesivo Cerámico (Bolsas)", unit: "bol.", emoji: "🥣", category: "Bolsas" },
+  stopkal: { name: "Stopkal Impermeabilizante (litros)", unit: "lts.", emoji: "💧", category: "Aditivos" },
+  hierro6: { name: "Hierro del 6 (barras x 12m)", unit: "ud.", emoji: "🔩", category: "Hierros" },
+  hierro10: { name: "Hierro del 10 (barras x 12m)", unit: "ud.", emoji: "🔩", category: "Hierros" },
+  hueco8: { name: "Ladrillo Hueco de 8 (unidades)", unit: "ud.", emoji: "🧱", category: "Ladrillos" },
 };
 
 // Input categories and labels
@@ -94,8 +94,6 @@ const INITIAL_INPUTS = {
 export default function Calculadora() {
   const [inputs, setInputs] = useState(INITIAL_INPUTS);
   const [activeTab, setActiveTab] = useState("hormigon");
-  const [dolarRate, setDolarRate] = useState(1420);
-  const [includeCementInTotal, setIncludeCementInTotal] = useState(true);
   const tel_whatsapp = "5493815139567";
 
   const handleInputChange = (id, val) => {
@@ -117,13 +115,11 @@ export default function Calculadora() {
       revoqueFino: 50,
       mamposteria12: 30
     });
-    setDolarRate(1420);
-    setIncludeCementInTotal(true);
     setActiveTab("hormigon");
   };
 
-  // Recalculate material quantities and costs in real-time
-  const { results, totals, activeInputCount } = useMemo(() => {
+  // Recalculate material quantities in real-time
+  const { results, activeInputCount } = useMemo(() => {
     const B24 = inputs.hArmado || 0;
     const B25 = inputs.hBrutoFino || 0;
     const B26 = inputs.cimientos || 0;
@@ -166,8 +162,6 @@ export default function Calculadora() {
       hueco8: B45*15
     };
 
-    let totalUSD = 0;
-    let totalPesos = 0;
     const computedResults = [];
 
     let countActive = 0;
@@ -176,42 +170,23 @@ export default function Calculadora() {
     for (const [key, rawVal] of Object.entries(rawQty)) {
       if (rawVal > 0) {
         const meta = MATERIAL_METADATA[key];
-        // Round bags/units up to nearest integer for realistic orders. Round aggregates to 2 decimals.
+        // Round bags/units up to nearest integer. Round aggregates to 2 decimals.
         const isBagOrUnit = meta.unit === "bol." || meta.unit === "ud.";
         const qtyFormatted = isBagOrUnit ? Math.ceil(rawVal) : parseFloat(rawVal.toFixed(2));
-        
-        const priceUSD = meta.priceUSD;
-        const itemCostUSD = qtyFormatted * priceUSD;
-        const itemCostPesos = itemCostUSD * dolarRate;
-
-        // Skip Cemento from totals if explicitly toggled off by user (to mimic original Excel bug)
-        const isCemento = key === "cemento";
-        if (!isCemento || includeCementInTotal) {
-          totalUSD += itemCostUSD;
-          totalPesos += itemCostPesos;
-        }
 
         computedResults.push({
           key,
           qty: qtyFormatted,
-          ...meta,
-          costUSD: itemCostUSD,
-          costPesos: itemCostPesos,
-          unitPricePesos: priceUSD * dolarRate
+          ...meta
         });
       }
     }
 
     return {
       results: computedResults,
-      totals: {
-        usd: totalUSD,
-        pesos: totalPesos,
-        cementoCostPesos: (Math.ceil(rawQty.cemento) * 4.60 * dolarRate) || 0
-      },
       activeInputCount: countActive
     };
-  }, [inputs, dolarRate, includeCementInTotal]);
+  }, [inputs]);
 
   const sendWhatsApp = () => {
     let msg = `Hola Corralón La Rural, calculé los materiales de mi obra con el estimador de la web.\n\n`;
@@ -231,8 +206,7 @@ export default function Calculadora() {
       msg += `• ${res.qty} ${res.unit} - ${res.name}\n`;
     });
 
-    msg += `\nTotal Estimado: *ARS $${totals.pesos.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}* (USD $${totals.usd.toFixed(2)})\n`;
-    msg += `_Cotización Dólar: $${dolarRate}_\n\nAguardo su contacto para revisar disponibilidad y envío a obra.`;
+    msg += `\nSolicito presupuesto formal y cotización con envío a obra de este listado comercial. Gracias.`;
 
     window.open(`https://wa.me/${tel_whatsapp}?text=${encodeURIComponent(msg)}`, "_blank");
   };
@@ -323,55 +297,6 @@ export default function Calculadora() {
           pointer-events: none;
           font-weight: 600;
         }
-        .dolar-strip {
-          background: #fff8e1;
-          border: 1px solid #ffe082;
-          color: #b78103;
-          border-radius: 12px;
-          padding: 16px 20px;
-          margin-bottom: 24px;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 16px;
-          flex-wrap: wrap;
-        }
-        .dolar-input {
-          display: flex;
-          align-items: center;
-          position: relative;
-          width: 120px;
-        }
-        .dolar-input span {
-          position: absolute;
-          left: 12px;
-          font-weight: 700;
-          color: #b78103;
-        }
-        .dolar-input input {
-          width: 100%;
-          padding: 8px 12px 8px 24px;
-          border: 1px solid #ffe082;
-          background: white;
-          border-radius: 6px;
-          font-weight: 700;
-          color: #b78103;
-          outline: none;
-          text-align: right;
-        }
-        .bug-alert {
-          background: rgba(192, 22, 14, 0.05);
-          border: 1px dashed rgba(192, 22, 14, 0.3);
-          border-radius: 8px;
-          padding: 12px 16px;
-          margin-top: 16px;
-          font-size: 0.8rem;
-          color: #a00e08;
-          line-height: 1.4;
-          display: flex;
-          gap: 10px;
-          align-items: flex-start;
-        }
         .btn-print {
           background: white;
           border: 1px solid var(--border-color);
@@ -393,7 +318,7 @@ export default function Calculadora() {
             padding: 0 !important;
             margin: 0 !important;
           }
-          .header, .info-strip, .brand-strip, .footer, .whatsapp-float, .page-header, .tabs-header, .inputs-card, .btn, .dolar-strip, .tip-box, .btn-print, .bug-alert, .action-btns {
+          .header, .info-strip, .brand-strip, .footer, .whatsapp-float, .page-header, .tabs-header, .inputs-card, .btn, .tip-box, .btn-print, .action-btns {
             display: none !important;
           }
           .main-content {
@@ -468,21 +393,6 @@ export default function Calculadora() {
             padding: 10px;
             vertical-align: middle;
           }
-          .print-totals {
-            margin-top: 24px;
-            border-top: 2px solid #333;
-            padding-top: 16px;
-            text-align: right;
-          }
-          .print-totals h3 {
-            font-size: 1.35rem;
-            margin: 0;
-          }
-          .print-totals p {
-            margin: 4px 0 0;
-            font-size: 0.85rem;
-            color: #666;
-          }
         }
 
         @media (max-width: 991px) {
@@ -511,9 +421,8 @@ export default function Calculadora() {
             </div>
           </div>
           <div className="invoice-meta">
-            <strong>Presupuesto Estimativo</strong><br />
+            <strong>Cómputo Métrico de Materiales</strong><br />
             Fecha: {new Date().toLocaleDateString('es-AR')}<br />
-            Dólar Blue: ${dolarRate} ARS
           </div>
         </div>
 
@@ -537,66 +446,34 @@ export default function Calculadora() {
         <table className="print-materials-table">
           <thead>
             <tr>
-              <th style={{ width: '45%' }}>Material Requerido</th>
-              <th style={{ width: '15%', textAlign: 'right' }}>Cantidad</th>
-              <th style={{ width: '20%', textAlign: 'right' }}>Precio Unit. (ARS)</th>
-              <th style={{ width: '20%', textAlign: 'right' }}>Total (ARS)</th>
+              <th style={{ width: '70%' }}>Material Requerido</th>
+              <th style={{ width: '30%', textAlign: 'right' }}>Cantidad sugerida</th>
             </tr>
           </thead>
           <tbody>
             {results.map(res => (
               <tr key={res.key}>
                 <td>{res.name}</td>
-                <td style={{ textAlign: 'right' }}>{res.qty} {res.unit}</td>
-                <td style={{ textAlign: 'right' }}>${res.unitPricePesos.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                <td style={{ textAlign: 'right' }}>${res.costPesos.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                <td style={{ textAlign: 'right', fontWeight: 700 }}>{res.qty} {res.unit}</td>
               </tr>
             ))}
           </tbody>
         </table>
 
-        <div className="print-totals">
-          <h3>Total Estimado: ${totals.pesos.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ARS</h3>
-          <p>Equivalente en moneda extranjera: USD ${totals.usd.toFixed(2)}</p>
-          <div style={{ marginTop: '24px', fontSize: '0.78rem', color: '#666', fontStyle: 'italic', textAlign: 'center' }}>
-            Nota: Este presupuesto es una estimación de consumo técnico de materiales según la planilla de obra. Los valores en pesos están sujetos a modificaciones según variación de lista de precios y cotización cambiaria. Para un presupuesto formal con flete, solicite cotización directa por WhatsApp.
-          </div>
+        <div style={{ marginTop: '40px', borderTop: '2px solid #333', paddingTop: '16px', fontSize: '0.78rem', color: '#666', fontStyle: 'italic', textAlign: 'center' }}>
+          Nota: Este cómputo es una estimación técnica del consumo de materiales según la planilla de obra. Las cantidades son sugeridas para las medidas ingresadas. Para solicitar un presupuesto formal con precios actuales, flete y formas de pago, presente este documento por WhatsApp a nuestros asesores.
         </div>
       </div>
 
       {/* SCREEN LAYOUT */}
       <div className="page-header">
-        <h2>🧮 Estimador de Consumo y Presupuesto</h2>
-        <p>Ingresá las medidas de tu proyecto y calculá el total exacto de materiales y costos basado en nuestra planilla oficial.</p>
+        <h2>🧮 Estimador técnico de Materiales</h2>
+        <p>Ingresá las medidas de tu proyecto y calculá el total exacto de materiales que necesitás comprar de forma instantánea.</p>
       </div>
 
       <div className="calculator-grid animate-fade-in">
         {/* LEFT COLUMN: INPUTS */}
         <div className="calculator-inputs">
-          {/* DOLAR BLUE STRIP */}
-          <div className="dolar-strip">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <span style={{ fontSize: '1.4rem' }}>💵</span>
-              <div>
-                <strong style={{ display: 'block', fontSize: '0.9rem', color: 'var(--secondary)' }}>
-                  Cotización de Dólar Blue
-                </strong>
-                <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                  Ajustá el valor en pesos del dólar para recalcular el presupuesto
-                </span>
-              </div>
-            </div>
-            <div className="dolar-input">
-              <span>$</span>
-              <input
-                type="number"
-                value={dolarRate}
-                onChange={(e) => setDolarRate(Math.max(1, parseInt(e.target.value) || 0))}
-                aria-label="Cotización dólar blue"
-              />
-            </div>
-          </div>
-
           {/* CONTROL BAR */}
           <div style={{ display: 'flex', gap: '12px', marginBottom: '20px', flexWrap: 'wrap' }}>
             <button className="btn" onClick={handleLoadExample} style={{ padding: '10px 20px', borderRadius: '8px', fontSize: '0.85rem' }}>
@@ -673,81 +550,59 @@ export default function Calculadora() {
               <div style={{ textAlign: 'center', padding: '40px 16px', color: 'var(--text-muted)' }}>
                 <div style={{ fontSize: '3rem', marginBottom: '12px' }}>🧮</div>
                 <p style={{ margin: 0, fontSize: '0.95rem' }}>
-                  Ingresá cantidades en las pestañas para ver los materiales sugeridos y presupuestos.
+                  Ingresá cantidades en las pestañas para ver la lista de materiales sugeridos al instante.
                 </p>
               </div>
             ) : (
               <div style={{ animation: 'fadeInUp 0.4s ease-out' }}>
-                {/* Consolidado */}
+                
+                {/* Visual Header */}
                 <div style={{
                   background: 'var(--bg-color)',
                   borderRadius: '12px',
-                  padding: '20px',
+                  padding: '16px',
                   marginBottom: '20px',
                   border: '1px solid var(--border-color)',
                   textAlign: 'center'
                 }}>
-                  <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>
-                    Presupuesto Técnico Estimado
+                  <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 700 }}>
+                    Cómputo Técnico Listo
                   </span>
-                  <h2 style={{ fontSize: '1.85rem', color: 'var(--primary)', fontWeight: 800, margin: '6px 0 2px' }}>
-                    ARS ${totals.pesos.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </h2>
-                  <span style={{ fontSize: '0.95rem', color: 'var(--secondary)', fontWeight: 600 }}>
-                    Equivalente: USD ${totals.usd.toFixed(2)}
-                  </span>
-
-                  {/* CEMENT DETECTED ALERTS */}
-                  <div className="bug-alert">
-                    <span>💡</span>
-                    <div style={{ textAlign: 'left' }}>
-                      <strong>Cálculo Real Consolidado:</strong> Suma el costo del Cemento en el presupuesto final (corrigiendo la omisión de la planilla original).
-                      <label style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '8px', cursor: 'pointer', fontWeight: 600, fontSize: '0.78rem' }}>
-                        <input
-                          type="checkbox"
-                          checked={includeCementInTotal}
-                          onChange={(e) => setIncludeCementInTotal(e.target.checked)}
-                          style={{ cursor: 'pointer' }}
-                        />
-                        Incluir cemento en el total (${totals.cementoCostPesos > 0 ? `+$${totals.cementoCostPesos.toLocaleString('es-AR')}` : 'Sin costo'})
-                      </label>
-                    </div>
-                  </div>
+                  <p style={{ fontSize: '0.9rem', color: 'var(--secondary)', margin: '4px 0 0', lineHeight: 1.4 }}>
+                    Estimación exacta de bolsas, metros cúbicos y unidades calculada según tu proyecto.
+                  </p>
                 </div>
 
                 {/* List of materials */}
                 <h4 style={{ fontSize: '0.85rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '12px', fontWeight: 700 }}>
                   Materiales Calculados ({results.length})
                 </h4>
-                <ul style={{ maxHeight: '280px', overflowY: 'auto', paddingRight: '4px', marginBottom: '24px', listStyle: 'none', padding: 0 }}>
+                <ul style={{ maxHeight: '320px', overflowY: 'auto', paddingRight: '4px', marginBottom: '24px', listStyle: 'none', padding: 0 }}>
                   {results.map(res => (
                     <li key={res.key} style={{
                       display: 'flex',
                       alignItems: 'center',
                       gap: '12px',
-                      padding: '10px 12px',
+                      padding: '12px 14px',
                       marginBottom: '8px',
                       borderRadius: '8px',
                       background: 'var(--bg-color)',
                       border: '1px solid var(--border-color)',
-                      fontSize: '0.88rem'
+                      fontSize: '0.9rem'
                     }}>
-                      <span style={{ fontSize: '1.4rem', flexShrink: 0 }}>{res.emoji}</span>
+                      <span style={{ fontSize: '1.5rem', flexShrink: 0 }}>{res.emoji}</span>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ fontWeight: 600, color: 'var(--text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={res.name}>
                           {res.name}
                         </div>
                         <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                          {res.priceUSD > 0 ? `u: $${res.priceUSD} USD (~$${res.unitPricePesos.toLocaleString('es-AR', { maximumFractionDigits: 0 })})` : 'Consultar precio'}
+                          Categoría: {res.category}
                         </span>
                       </div>
-                      <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                        <strong style={{ display: 'block', color: 'var(--secondary)' }}>
+                      <div style={{ flexShrink: 0 }}>
+                        <strong style={{ fontSize: '1.05rem', color: 'var(--primary)', fontWeight: 700 }}>
                           {res.qty} {res.unit}
                         </strong>
-                        <span style={{ fontSize: '0.75rem', color: 'var(--success)', fontWeight: 600 }}>
-                          {res.costPesos > 0 ? `$${res.costPesos.toLocaleString('es-AR', { maximumFractionDigits: 0 })}` : 'Consultar'}
-                        </span>
                       </div>
                     </li>
                   ))}
@@ -789,7 +644,7 @@ export default function Calculadora() {
                       gap: '8px',
                     }}
                   >
-                    🖨️ Guardar / Imprimir PDF
+                    📄 Guardar / Imprimir PDF de Materiales
                   </button>
                 </div>
               </div>
