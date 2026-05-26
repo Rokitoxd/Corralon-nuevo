@@ -479,41 +479,122 @@ export default function Catalogo() {
           <h3 style={{ marginBottom: '20px', color: 'var(--secondary)', fontSize: '1.3rem', fontWeight: 600 }}>
             Explorar Familias
           </h3>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px' }}>
-            {categorias.map(([cat, count]) => (
+
+          {/* FEATURED CATEGORY (Materiales de Construcción) */}
+          {(() => {
+            const featCat = "🧱 Materiales de Construcción";
+            const featItem = categorias.find(([cat]) => cat === featCat);
+            if (!featItem) return null;
+            const [cat, count] = featItem;
+            return (
               <div
-                key={cat}
                 className="card"
-                style={{ cursor: 'pointer', padding: 0, overflow: 'hidden' }}
+                style={{
+                  cursor: 'pointer',
+                  padding: 0,
+                  overflow: 'hidden',
+                  marginBottom: '28px',
+                  borderLeft: '4px solid var(--primary)',
+                  boxShadow: 'var(--shadow-md)',
+                  transition: 'transform 0.2s, box-shadow 0.2s',
+                  animation: 'fadeInUp 0.4s ease-out',
+                }}
                 onClick={() => handleCategoryClick(cat)}
                 role="button"
                 tabIndex={0}
                 onKeyDown={(e) => e.key === 'Enter' && handleCategoryClick(cat)}
               >
-                <div style={{ height: '150px', width: '100%', position: 'relative', backgroundColor: '#eee' }}>
+                <div style={{ height: '240px', width: '100%', position: 'relative', backgroundColor: '#eee' }}>
                   <img
-                    src={CAT_IMAGENES[cat] || '/cat_general.png'}
+                    src={CAT_IMAGENES[cat] || '/cat_obra_gruesa.png'}
                     alt={cat}
                     style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                   />
                   <div style={{
-                    position: 'absolute', bottom: 0, left: 0, right: 0,
-                    padding: '12px 16px',
-                    background: 'linear-gradient(0deg, rgba(0,0,0,0.7) 0%, transparent 100%)',
+                    position: 'absolute',
+                    top: '16px',
+                    left: '16px',
+                    background: 'var(--primary)',
                     color: 'white',
-                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                    padding: '4px 14px',
+                    borderRadius: '50px',
+                    fontSize: '0.8rem',
+                    fontWeight: 700,
+                    boxShadow: 'var(--shadow-sm)'
                   }}>
-                    <h4 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 600 }}>{cat}</h4>
+                    ⭐ Especialidad de la Casa
+                  </div>
+                  <div style={{
+                    position: 'absolute', bottom: 0, left: 0, right: 0,
+                    padding: '24px',
+                    background: 'linear-gradient(0deg, rgba(0,0,0,0.85) 0%, transparent 100%)',
+                    color: 'white',
+                    display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end',
+                    flexWrap: 'wrap',
+                    gap: '12px'
+                  }}>
+                    <div style={{ flex: 1, minWidth: '220px' }}>
+                      <h4 style={{ margin: 0, fontSize: '1.6rem', fontWeight: 800, textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>
+                        {cat}
+                      </h4>
+                      <p style={{ margin: '4px 0 0', opacity: 0.9, fontSize: '0.92rem', lineHeight: 1.4, maxWidth: '600px' }}>
+                        Nuestra prioridad número uno. Cemento, cal, áridos, hierros, ladrillos y todo lo necesario para cimientos, estructura y obra gruesa.
+                      </p>
+                    </div>
                     <span style={{
-                      background: 'rgba(255,255,255,0.2)', padding: '2px 10px',
-                      borderRadius: '50px', fontSize: '0.8rem', fontWeight: 600,
+                      background: 'var(--primary)', padding: '6px 16px',
+                      borderRadius: '50px', fontSize: '0.85rem', fontWeight: 700,
+                      boxShadow: 'var(--shadow-sm)', whiteSpace: 'nowrap'
                     }}>
-                      {count}
+                      {count} productos
                     </span>
                   </div>
                 </div>
               </div>
-            ))}
+            );
+          })()}
+
+          {/* OTHER CATEGORIES GRID */}
+          <h4 style={{ marginBottom: '16px', color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            Otras Categorías
+          </h4>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '16px', marginBottom: '24px' }}>
+            {categorias
+              .filter(([cat]) => cat !== "🧱 Materiales de Construcción")
+              .map(([cat, count]) => (
+                <div
+                  key={cat}
+                  className="card"
+                  style={{ cursor: 'pointer', padding: 0, overflow: 'hidden', boxShadow: 'var(--shadow-sm)', transition: 'transform 0.2s, box-shadow 0.2s' }}
+                  onClick={() => handleCategoryClick(cat)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => e.key === 'Enter' && handleCategoryClick(cat)}
+                >
+                  <div style={{ height: '120px', width: '100%', position: 'relative', backgroundColor: '#eee' }}>
+                    <img
+                      src={CAT_IMAGENES[cat] || '/cat_general.png'}
+                      alt={cat}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                    />
+                    <div style={{
+                      position: 'absolute', bottom: 0, left: 0, right: 0,
+                      padding: '10px 14px',
+                      background: 'linear-gradient(0deg, rgba(0,0,0,0.75) 0%, transparent 100%)',
+                      color: 'white',
+                      display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                    }}>
+                      <h5 style={{ margin: 0, fontSize: '0.9rem', fontWeight: 600 }}>{cat}</h5>
+                      <span style={{
+                        background: 'rgba(255,255,255,0.2)', padding: '2px 8px',
+                        borderRadius: '50px', fontSize: '0.75rem', fontWeight: 600,
+                      }}>
+                        {count}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
           </div>
         </section>
       ) : (

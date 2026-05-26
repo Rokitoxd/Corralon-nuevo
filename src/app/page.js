@@ -265,28 +265,94 @@ export default function Home() {
           <h2>Nuestras Categorías</h2>
           <p>Explorá nuestra amplia variedad de productos</p>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px' }}>
-          {Object.entries(CAT_IMAGENES).map(([cat, img]) => (
-            <Link href="/catalogo" key={cat} style={{ textDecoration: 'none' }}>
-              <div className="card" style={{ padding: 0, overflow: 'hidden', cursor: 'pointer' }}>
-                <div style={{ position: 'relative', height: '160px', backgroundColor: '#eee' }}>
+
+        {/* FEATURED CATEGORY (Materiales de Construcción) */}
+        {(() => {
+          const featCat = "🧱 Materiales de Construcción";
+          const featImg = CAT_IMAGENES[featCat];
+          if (!featImg) return null;
+          return (
+            <Link href="/catalogo" style={{ textDecoration: 'none' }}>
+              <div
+                className="card"
+                style={{
+                  cursor: 'pointer',
+                  padding: 0,
+                  overflow: 'hidden',
+                  marginBottom: '24px',
+                  borderLeft: '4px solid var(--primary)',
+                  boxShadow: 'var(--shadow-md)',
+                  transition: 'transform 0.2s, box-shadow 0.2s',
+                  animation: 'fadeInUp 0.4s ease-out',
+                }}
+              >
+                <div style={{ height: '220px', width: '100%', position: 'relative', backgroundColor: '#eee' }}>
                   <img
-                    src={img}
-                    alt={cat}
+                    src={featImg}
+                    alt={featCat}
                     style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                   />
                   <div style={{
+                    position: 'absolute',
+                    top: '16px',
+                    left: '16px',
+                    background: 'var(--primary)',
+                    color: 'white',
+                    padding: '4px 14px',
+                    borderRadius: '50px',
+                    fontSize: '0.8rem',
+                    fontWeight: 700,
+                    boxShadow: 'var(--shadow-sm)'
+                  }}>
+                    ⭐ Nuestra Especialidad
+                  </div>
+                  <div style={{
                     position: 'absolute', bottom: 0, left: 0, right: 0,
-                    padding: '14px 16px',
-                    background: 'linear-gradient(0deg, rgba(0,0,0,0.7) 0%, transparent 100%)',
+                    padding: '24px',
+                    background: 'linear-gradient(0deg, rgba(0,0,0,0.8) 0%, transparent 100%)',
                     color: 'white',
                   }}>
-                    <h4 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 600 }}>{cat}</h4>
+                    <h4 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 800, textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>
+                      {featCat}
+                    </h4>
+                    <p style={{ margin: '4px 0 0', opacity: 0.9, fontSize: '0.92rem', maxWidth: '600px' }}>
+                      La prioridad de tu obra. Cemento, cal, áridos, hierros, chapas y todo lo necesario para cimientos y estructura al mejor precio.
+                    </p>
                   </div>
                 </div>
               </div>
             </Link>
-          ))}
+          );
+        })()}
+
+        {/* OTHER CATEGORIES GRID */}
+        <h4 style={{ marginBottom: '16px', color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+          Otras Categorías
+        </h4>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '16px' }}>
+          {Object.entries(CAT_IMAGENES)
+            .filter(([cat]) => cat !== "🧱 Materiales de Construcción")
+            .map(([cat, img]) => (
+              <Link href="/catalogo" key={cat} style={{ textDecoration: 'none' }}>
+                <div className="card" style={{ padding: 0, overflow: 'hidden', cursor: 'pointer', boxShadow: 'var(--shadow-sm)', transition: 'transform 0.2s, box-shadow 0.2s' }}>
+                  <div style={{ position: 'relative', height: '120px', backgroundColor: '#eee' }}>
+                    <img
+                      src={img}
+                      alt={cat}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                    />
+                    <div style={{
+                      position: 'absolute', bottom: 0, left: 0, right: 0,
+                      padding: '10px 14px',
+                      background: 'linear-gradient(0deg, rgba(0,0,0,0.75) 0%, transparent 100%)',
+                      color: 'white',
+                    }}>
+                      <h4 style={{ margin: 0, fontSize: '0.9rem', fontWeight: 600 }}>{cat}</h4>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            ))}
         </div>
       </section>
 
