@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import { put } from '@vercel/blob';
+import fs from 'fs';
+import path from 'path';
 
 export async function POST(request) {
   try {
@@ -18,17 +20,39 @@ export async function POST(request) {
     const safeName = name.replace(/[^a-z0-9]/gi, '_').toLowerCase();
     const timestamp = Date.now();
     const ext = file.name.split('.').pop();
-    const blobFilename = `planillas/${timestamp}_${safeName}.${ext}`;
+    const filenameWithTimestamp = `${timestamp}_${safeName}.${ext}`;
 
-    // Upload to Vercel Blob (requires BLOB_READ_WRITE_TOKEN env var on Vercel)
-    const blob = await put(blobFilename, buffer, {
-      access: 'public',
-      contentType: file.type || 'application/octet-stream',
-    });
+    // Check if we should use Vercel Blob or fallback to local disk storage
+    if (process.env.BLOB_READ_WRITE_TOKEN) {
+      const blobFilename = `planillas/${filenameWithTimestamp}`;
+      // Upload to Vercel Blob
+      const blob = await put(blobFilename, buffer, {
+        access: 'public',
+        contentType: file.type || 'application/octet-stream',
+      });
+      return NextResponse.json({ success: true, url: blob.url, fileName: file.name });
+    } else {
+      // Fallback: Save file to local directory 'pedidos_recibidos'
+      const dir = path.join(process.cwd(), 'pedidos_recibidos');
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+      }
+      
+      const filePath = path.join(dir, filenameWithTimestamp);
+      await fs.promises.writeFile(filePath, buffer);
 
-    return NextResponse.json({ success: true, url: blob.url, fileName: file.name });
+      // Construct a full absolute URL based on the request host (e.g., http://192.168.0.154:3000)
+      const requestUrl = new URL(request.url);
+      const localUrl = `${requestUrl.origin}/api/download?file=${filenameWithTimestamp}`;
+
+      console.log('Saved file locally (fallback):', filePath);
+      console.log('Local fallback URL:', localUrl);
+
+      return NextResponse.json({ success: true, url: localUrl, fileName: file.name });
+    }
   } catch (error) {
     console.error('Upload error:', error);
     return NextResponse.json({ error: 'Error al subir el archivo' }, { status: 500 });
   }
 }
+
