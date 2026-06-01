@@ -5,7 +5,7 @@ import { useState, useMemo } from "react";
 // Material metadata (Column H and J of Excel)
 const MATERIAL_METADATA = {
   cemento: { name: "Cemento (Bolsas x 25kg)", unit: "bol.", emoji: "🏗️", category: "Bolsas" },
-  hercal: { name: "Hercal / Cal (Bolsas)", unit: "bol.", emoji: "⚪", category: "Bolsas" },
+  hercal: { name: "Cemento de albañilería (Bolsas)", unit: "bol.", emoji: "⚪", category: "Bolsas" },
   arena: { name: "Arena Mediana (m³)", unit: "m³", emoji: "⏳", category: "Áridos" },
   ripio: { name: "Ripio Lavado / Cantera (m³)", unit: "m³", emoji: "🪨", category: "Áridos" },
   ripioBruto: { name: "Ripio Bruto / Estabilizado (m³)", unit: "m³", emoji: "⚙️", category: "Áridos" },
@@ -41,7 +41,7 @@ const SECTIONS = [
     title: "🏗️ Contrapisos y Capas",
     inputs: [
       { id: "contrapisoCement", label: "Contrapiso 8cm (con Cemento)", unit: "m²", placeholder: "m² de contrapiso", desc: "Cemento y ripio bruto (1 bolsa / 3 m²)" },
-      { id: "contrapisoHercal", label: "Contrapiso 8cm (con Hercal)", unit: "m²", placeholder: "m² de contrapiso", desc: "Hercal y ripio bruto (1 bolsa / 3 m²)" },
+      { id: "contrapisoHercal", label: "Contrapiso 8cm (con Cemento de albañilería)", unit: "m²", placeholder: "m² de contrapiso", desc: "Cemento de albañilería y ripio bruto (1 bolsa / 3 m²)" },
       { id: "capaAisladora", label: "Capa Aisladora", unit: "m²", placeholder: "m² a impermeabilizar", desc: "Cemento y arena fina (1 bolsa / 4 m²)" },
     ]
   },
@@ -49,10 +49,10 @@ const SECTIONS = [
     id: "mamposteria",
     title: "🏠 Mampostería y Paredes",
     inputs: [
-      { id: "mamposteria15", label: "Pared Ladrillo Común de 15", unit: "m²", placeholder: "m² de pared", desc: "Ladrillos comunes (50 u/m²) y Hercal" },
-      { id: "mamposteria12", label: "Pared Ladrillo Hueco de 12", unit: "m²", placeholder: "m² de pared", desc: "Huecos de 12x18x33 (15 u/m²) y Hercal" },
-      { id: "mamposteria18", label: "Pared Ladrillo Hueco de 18", unit: "m²", placeholder: "m² de pared", desc: "Huecos de 18x18x33 (15 u/m²) y Hercal" },
-      { id: "mamposteria08", label: "Pared Ladrillo Hueco de 8", unit: "m²", placeholder: "m² de pared", desc: "Huecos de 8x18x33 (15 u/m²) y Hercal" },
+      { id: "mamposteria15", label: "Pared Ladrillo Común de 15", unit: "m²", placeholder: "m² de pared", desc: "Ladrillos comunes (50 u/m²) y Cemento de albañilería" },
+      { id: "mamposteria12", label: "Pared Ladrillo Hueco de 12", unit: "m²", placeholder: "m² de pared", desc: "Huecos de 12x18x33 (15 u/m²) y Cemento de albañilería" },
+      { id: "mamposteria18", label: "Pared Ladrillo Hueco de 18", unit: "m²", placeholder: "m² de pared", desc: "Huecos de 18x18x33 (15 u/m²) y Cemento de albañilería" },
+      { id: "mamposteria08", label: "Pared Ladrillo Hueco de 8", unit: "m²", placeholder: "m² de pared", desc: "Huecos de 8x18x33 (15 u/m²) y Cemento de albañilería" },
     ]
   },
   {
@@ -60,8 +60,8 @@ const SECTIONS = [
     title: "✨ Revoques y Capas Finas",
     inputs: [
       { id: "azotadoCement", label: "Azotado Impermeable (con Cemento)", unit: "m²", placeholder: "m² a azotar", desc: "Cemento y arena (1 bolsa / 9 m²)" },
-      { id: "azotadoHercal", label: "Azotado Impermeable (con Hercal)", unit: "m²", placeholder: "m² a azotar", desc: "Hercal y arena (1 bolsa / 9 m²)" },
-      { id: "revoqueGrueso", label: "Revoque Grueso (con Hercal)", unit: "m²", placeholder: "m² a revocar", desc: "Hercal y arena mediana (1 bolsa / 5 m²)" },
+      { id: "azotadoHercal", label: "Azotado Impermeable (con Cemento de albañilería)", unit: "m²", placeholder: "m² a azotar", desc: "Cemento de albañilería y arena (1 bolsa / 9 m²)" },
+      { id: "revoqueGrueso", label: "Revoque Grueso (con Cemento de albañilería)", unit: "m²", placeholder: "m² a revocar", desc: "Cemento de albañilería y arena mediana (1 bolsa / 5 m²)" },
       { id: "revoqueFino", label: "Revoque Fino", unit: "m²", placeholder: "m² a lucir", desc: "Bolsa de fino para terminación (1 bolsa / 9 m²)" },
       { id: "adhesivo", label: "Pegamento / Adhesivo Cerámico", unit: "m²", placeholder: "m² a colocar", desc: "Pegamento impermeable (1 bolsa / 8.5 m²)" },
       { id: "revoqueStopkal", label: "Revoque con Stopkal", unit: "m²", placeholder: "m² de revoque", desc: "Cemento (1.5kg/m²) y Stopkal aditivo (0.075L/m²)" },
@@ -306,6 +306,31 @@ export default function Calculadora() {
           background: #fafafa;
           border-color: #bbb;
         }
+        .warning-box {
+          display: inline-flex;
+          align-items: center;
+          gap: 12px;
+          padding: 12px 20px;
+          border-radius: 12px;
+          background: rgba(245, 158, 11, 0.08);
+          border: 1px solid rgba(245, 158, 11, 0.25);
+          color: #b45309;
+          font-size: 0.88rem;
+          line-height: 1.4;
+          margin-top: 12px;
+          max-width: 100%;
+          text-align: left;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+          animation: fadeInUp 0.4s ease-out;
+        }
+        .warning-icon {
+          font-size: 1.25rem;
+          flex-shrink: 0;
+        }
+        .warning-content strong {
+          font-weight: 700;
+          color: #92400e;
+        }
         
         /* PRINT MODE CLEAN STYLING */
         .print-invoice {
@@ -468,7 +493,13 @@ export default function Calculadora() {
       {/* SCREEN LAYOUT */}
       <div className="page-header">
         <h2>🧮 Estimador técnico de Materiales</h2>
-        <p>Ingresá las medidas de tu proyecto y calculá el total exacto de materiales que necesitás comprar de forma instantánea.</p>
+        <p>Ingrese las medidas de tu proyecto y obtiene una estimacion de los materiales necesario</p>
+        <div className="warning-box">
+          <span className="warning-icon">⚠️</span>
+          <div className="warning-content">
+            <strong>Nota:</strong> Siempre consultar con un profesional estos datos.
+          </div>
+        </div>
       </div>
 
       <div className="calculator-grid animate-fade-in">

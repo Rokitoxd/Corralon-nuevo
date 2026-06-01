@@ -104,7 +104,7 @@ with tab_minorista:
     
     if st.session_state.carrito:
         st.subheader("Tu Pedido Actual:")
-        pedido_texto = "Hola Corralón, quiero encargar lo siguiente:\n\n"
+        pedido_texto = "Hola Corralón, preciso la cotización de los siguientes materiales:\n\n"
         
         for item in st.session_state.carrito:
             st.write(f"{item['Cantidad']} u. - {item['Articulo']}")

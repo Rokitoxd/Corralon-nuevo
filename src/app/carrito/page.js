@@ -8,7 +8,7 @@ export default function Carrito() {
   const tel_whatsapp = "5493815139567";
 
   const enviarWhatsApp = () => {
-    let pedido_texto = "Hola Corralon La Rural, quiero encargar lo siguiente para revisar stock:\n\n";
+    let pedido_texto = "Hola Corralon La Rural, Preciso la cotizacion de los siguientes materiales:\n\n";
     cart.forEach(item => {
       pedido_texto += `- ${item.cantidad} u. de ${item.ARTICULO}\n`;
     });
