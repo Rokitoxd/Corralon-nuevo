@@ -96,7 +96,7 @@ export default function Home() {
             Materiales de construcción, ferretería, plomería y más. Envíos con flota propia a toda la provincia de Tucumán.
           </p>
           <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap' }}>
-            <Link href="/catalogo" style={{
+            <Link href="/planilla" style={{
               background: 'white',
               color: '#b71c1c',
               padding: '14px 32px',
@@ -104,10 +104,12 @@ export default function Home() {
               fontWeight: 700,
               fontSize: '1.05rem',
               transition: 'transform 0.2s, box-shadow 0.2s',
-              display: 'inline-block',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
               boxShadow: '0 4px 15px rgba(0,0,0,0.15)'
             }}>
-              Ver Catálogo
+              📄 Envía tu imagen o documento para asesorarte
             </Link>
             <a href={`https://wa.me/${tel_whatsapp}`} target="_blank" rel="noopener noreferrer" style={{
               background: '#25D366',
@@ -126,6 +128,135 @@ export default function Home() {
               💬 Consultar por WhatsApp
             </a>
           </div>
+        </div>
+      </section>
+
+      {/* SECCIÓN INSTRUCTIVA — 4 Tarjetas Principales */}
+      <style>{`
+        .instructive-grid {
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 20px;
+          margin-top: 48px;
+          margin-bottom: 48px;
+        }
+        .instructive-card {
+          border-radius: 20px;
+          overflow: hidden;
+          border: 1px solid var(--border-color);
+          box-shadow: var(--shadow-md);
+          transition: transform 0.3s ease, box-shadow 0.3s ease;
+          background: var(--surface-color);
+          text-decoration: none;
+          color: inherit;
+          display: flex;
+          flex-direction: column;
+        }
+        .instructive-card:hover {
+          transform: translateY(-6px);
+          box-shadow: 0 16px 48px rgba(0,0,0,0.12);
+        }
+        .instructive-card img {
+          width: 100%;
+          height: 180px;
+          object-fit: cover;
+          display: block;
+        }
+        .instructive-card-body {
+          padding: 20px;
+          display: flex;
+          flex-direction: column;
+          flex: 1;
+        }
+        .instructive-card-body h3 {
+          font-size: 1.05rem;
+          font-weight: 700;
+          color: var(--secondary);
+          margin: 0 0 8px;
+        }
+        .instructive-card-body p {
+          font-size: 0.85rem;
+          color: var(--text-muted);
+          margin: 0 0 16px;
+          line-height: 1.5;
+          flex: 1;
+        }
+        .instructive-badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 8px 18px;
+          border-radius: 50px;
+          font-weight: 700;
+          font-size: 0.82rem;
+          transition: opacity 0.2s;
+          align-self: flex-start;
+        }
+        @media (max-width: 1024px) {
+          .instructive-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+          }
+        }
+        @media (max-width: 600px) {
+          .instructive-grid {
+            grid-template-columns: 1fr;
+            gap: 14px;
+          }
+          .instructive-card img {
+            height: 160px;
+          }
+        }
+      `}</style>
+      <section>
+        <div className="instructive-grid">
+          {/* Card 1: Envía tu documento */}
+          <Link href="/planilla" className="instructive-card">
+            <img src="/asesor_planilla.png" alt="Asesor revisando tu planilla de materiales" />
+            <div className="instructive-card-body">
+              <h3>📄 Envía tu imagen o documento para asesorarte</h3>
+              <p>Subí tu planilla de materiales, foto del presupuesto o cualquier documento y nuestro equipo lo revisará para darte la mejor cotización.</p>
+              <span className="instructive-badge" style={{ background: 'rgba(192, 22, 14, 0.08)', color: '#b71c1c' }}>
+                Subir Documento →
+              </span>
+            </div>
+          </Link>
+
+          {/* Card 2: Consultá por WhatsApp */}
+          <a href={`https://wa.me/${tel_whatsapp}`} target="_blank" rel="noopener noreferrer" className="instructive-card">
+            <img src="/whatsapp_instructivo.png" alt="Enviar consulta por WhatsApp" />
+            <div className="instructive-card-body">
+              <h3>💬 Consultá por WhatsApp</h3>
+              <p>Envianos una foto de tu lista de materiales, plano o consulta directamente con un asesor. Respuesta inmediata en horario comercial.</p>
+              <span className="instructive-badge" style={{ background: 'rgba(37, 211, 102, 0.1)', color: '#128C7E' }}>
+                Abrir WhatsApp →
+              </span>
+            </div>
+          </a>
+
+          {/* Card 3: Calculadora de Materiales */}
+          <Link href="/calculadora" className="instructive-card">
+            <img src="/calculadora_instructivo.png" alt="Calculadora de materiales de construcción" />
+            <div className="instructive-card-body">
+              <h3>🧮 Calculadora de Materiales</h3>
+              <p>Ingresá las medidas de tu proyecto y obtené una estimación instantánea de los materiales necesarios para tu obra.</p>
+              <span className="instructive-badge" style={{ background: 'rgba(245, 158, 11, 0.1)', color: '#b45309' }}>
+                Calcular Materiales →
+              </span>
+            </div>
+          </Link>
+
+          {/* Card 4: Ver Catálogo */}
+          <Link href="/catalogo" className="instructive-card">
+            <img src="/cat_obra_gruesa.png" alt="Catálogo de materiales de construcción" />
+            <div className="instructive-card-body">
+              <h3>🛒 Ver Catálogo Completo</h3>
+              <p>Explorá nuestro catálogo completo de materiales de construcción, ferretería, plomería, electricidad y más.</p>
+              <span className="instructive-badge" style={{ background: 'rgba(192, 22, 14, 0.08)', color: '#b71c1c' }}>
+                Ver Catálogo →
+              </span>
+            </div>
+          </Link>
         </div>
       </section>
 

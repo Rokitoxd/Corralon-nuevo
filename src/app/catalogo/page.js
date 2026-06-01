@@ -30,6 +30,10 @@ export default function Catalogo() {
   const [aridoUnidad, setAridoUnidad] = useState("m3");
   const [aridoQty, setAridoQty] = useState(1);
 
+  const [chapaTipo, setChapaTipo] = useState("");
+  const [chapaMetros, setChapaMetros] = useState("");
+  const [chapaQty, setChapaQty] = useState(1);
+
   useEffect(() => {
     if (aridoTipo === "Ripio Bruto Fino") {
       setAridoUnidad("m3");
@@ -66,6 +70,44 @@ export default function Catalogo() {
     } else {
       showToast(`⚠️ Este producto no se encuentra disponible.`);
     }
+  };
+
+  // ── Chapas Widget Logic ──
+  const chapaMetrosOptions = useMemo(() => {
+    const options = [];
+    for (let m = 0.5; m <= 15; m += 0.5) {
+      options.push(m % 1 === 0 ? `${m.toFixed(1)}` : `${m.toFixed(2)}`);
+    }
+    return options;
+  }, []);
+
+  const chapaProductName = useMemo(() => {
+    if (!chapaTipo || !chapaMetros) return "";
+    const metrosNum = parseFloat(chapaMetros);
+    const metrosLabel = metrosNum % 1 === 0 ? `${metrosNum.toFixed(0)}` : `${metrosNum}`;
+    const names = {
+      "Cinc Cal 25 Acanalada": `CHAPA ZINC CAL 25 DE ${metrosLabel} MTS`,
+      "Cinc Cal 27 Acanalada": `CHAPA ZINC CAL 27 DE ${metrosLabel} MTS`,
+      "Traslúcida": `CHAPA TRASLUCIDA DE ${metrosLabel} MTS`,
+      "Trapezoidal": `CHAPA TRAPEZOIDAL DE ${metrosLabel} MTS`,
+    };
+    return names[chapaTipo] || "";
+  }, [chapaTipo, chapaMetros]);
+
+  const chapaReady = chapaTipo !== "" && chapaMetros !== "";
+
+  const handleAddChapa = () => {
+    if (!chapaReady) {
+      showToast(`⚠️ Seleccioná tipo de chapa y metros.`);
+      return;
+    }
+    const chapaItem = { ARTICULO: chapaProductName, CATEGORIA_WEB: "⚙️ Hierros y Chapas" };
+    addToCart(chapaItem, chapaQty);
+    showToast(`✓ Agregado: ${chapaQty} × ${chapaProductName}`);
+    // Reset para agregar otra medida
+    setChapaTipo("");
+    setChapaMetros("");
+    setChapaQty(1);
   };
 
   useEffect(() => {
@@ -341,6 +383,162 @@ export default function Catalogo() {
                 opacity: matchedArido ? 1 : 0.6,
                 cursor: matchedArido ? 'pointer' : 'not-allowed',
                 boxShadow: matchedArido ? '0 4px 12px rgba(183,28,28,0.2)' : 'none',
+              }}
+            >
+              Agregar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderChapasWidget = () => (
+    <div className="card animate-fade-in aridos-widget" style={{
+      borderLeft: '4px solid #6366f1',
+      marginBottom: '32px',
+      background: 'var(--surface-color)',
+      boxShadow: 'var(--shadow-md)',
+      animation: 'fadeInUp 0.4s ease-out'
+    }}>
+      {/* Image container */}
+      <div className="aridos-widget-img">
+        <img
+          src="/cat_hierros_chapas.png"
+          alt="Chapas de Zinc y Traslúcidas"
+          style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+        />
+        <div style={{
+          position: 'absolute',
+          top: '16px',
+          left: '16px',
+          background: '#6366f1',
+          color: 'white',
+          padding: '4px 12px',
+          borderRadius: '50px',
+          fontSize: '0.8rem',
+          fontWeight: 700,
+          boxShadow: 'var(--shadow-sm)'
+        }}>
+          Cortamos a Medida 📏
+        </div>
+      </div>
+
+      {/* Control panel */}
+      <div className="aridos-widget-controls">
+        <h3 style={{ fontSize: '1.4rem', color: 'var(--secondary)', marginBottom: '8px', marginTop: 0 }}>
+          Selector de Chapas 🏗️
+        </h3>
+        <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '24px', lineHeight: 1.5 }}>
+          Elegí el tipo de chapa y los metros lineales que necesitás. Agregá al carrito y el tablero se reinicia para pedir otra medida.
+        </p>
+
+        <div style={{ display: 'flex', gap: '16px', marginBottom: '20px', flexWrap: 'wrap' }}>
+          {/* Tipo de Chapa */}
+          <div style={{ flex: 1, minWidth: '180px' }}>
+            <label style={{ display: 'block', marginBottom: '8px', fontWeight: 600, fontSize: '0.85rem', color: 'var(--secondary)' }}>
+              Tipo de Chapa
+            </label>
+            <select
+              value={chapaTipo}
+              onChange={(e) => setChapaTipo(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '12px',
+                borderRadius: '8px',
+                border: '1px solid var(--border-color)',
+                backgroundColor: 'white',
+                fontWeight: 500,
+                color: 'var(--text-main)',
+                cursor: 'pointer',
+                outline: 'none',
+                boxShadow: 'var(--shadow-sm)'
+              }}
+            >
+              <option value="" disabled>— Seleccionar tipo —</option>
+              <option value="Cinc Cal 25 Acanalada">Chapa Cinc Calibre 25 Acanalada</option>
+              <option value="Cinc Cal 27 Acanalada">Chapa Cinc Calibre 27 Acanalada</option>
+              <option value="Traslúcida">Chapa Traslúcida</option>
+              <option value="Trapezoidal">Chapa Trapezoidal</option>
+            </select>
+          </div>
+
+          {/* Metros Lineales */}
+          <div style={{ flex: 1, minWidth: '140px' }}>
+            <label style={{ display: 'block', marginBottom: '8px', fontWeight: 600, fontSize: '0.85rem', color: 'var(--secondary)' }}>
+              Metros Lineales
+            </label>
+            <select
+              value={chapaMetros}
+              onChange={(e) => setChapaMetros(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '12px',
+                borderRadius: '8px',
+                border: '1px solid var(--border-color)',
+                backgroundColor: 'white',
+                fontWeight: 500,
+                color: 'var(--text-main)',
+                cursor: 'pointer',
+                outline: 'none',
+                boxShadow: 'var(--shadow-sm)'
+              }}
+            >
+              <option value="" disabled>— Seleccionar metros —</option>
+              {chapaMetrosOptions.map(m => (
+                <option key={m} value={m}>{m} mts</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {/* Product display and CTA */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginTop: '8px',
+          borderTop: '1px solid var(--border-color)',
+          paddingTop: '20px',
+          flexWrap: 'wrap',
+          gap: '16px'
+        }}>
+          <div>
+            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block' }}>
+              Producto Seleccionado:
+            </span>
+            <span style={{ fontWeight: 600, color: chapaReady ? 'var(--secondary)' : 'var(--text-muted)', fontSize: '0.95rem' }}>
+              {chapaReady ? chapaProductName : "Seleccioná tipo y metros"}
+            </span>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <input
+              type="number"
+              min="1"
+              value={chapaQty}
+              onChange={(e) => setChapaQty(Math.max(1, parseInt(e.target.value) || 1))}
+              style={{
+                width: '70px',
+                padding: '12px',
+                textAlign: 'center',
+                borderRadius: '8px',
+                border: '1px solid var(--border-color)',
+                fontWeight: 600,
+                boxShadow: 'var(--shadow-sm)'
+              }}
+            />
+            <button
+              className="btn"
+              onClick={handleAddChapa}
+              disabled={!chapaReady}
+              style={{
+                padding: '12px 24px',
+                borderRadius: '8px',
+                fontWeight: 700,
+                opacity: chapaReady ? 1 : 0.6,
+                cursor: chapaReady ? 'pointer' : 'not-allowed',
+                boxShadow: chapaReady ? '0 4px 12px rgba(183,28,28,0.2)' : 'none',
               }}
             >
               Agregar
@@ -734,6 +932,7 @@ export default function Catalogo() {
               .sort(([a], [b]) => a.localeCompare(b))
               .map(([subcat, items]) => {
                 const isAridos = subcat.toLowerCase().includes("arido");
+                const isChapas = subcat.toLowerCase() === "chapas";
                 return (
                   <div key={subcat} style={{ marginBottom: '40px' }}>
                     <h4 style={{
@@ -746,6 +945,11 @@ export default function Catalogo() {
                     
                     {isAridos ? (
                       renderAridosWidget()
+                    ) : isChapas ? (
+                      <>{renderChapasWidget()}
+                      <div className="grid">
+                        {items.map((item, idx) => renderProductCard(item, `${subcat}-${idx}`))}
+                      </div></>
                     ) : (
                       <div className="grid">
                         {items.map((item, idx) => renderProductCard(item, `${subcat}-${idx}`))}

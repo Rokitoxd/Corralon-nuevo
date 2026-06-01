@@ -73,11 +73,17 @@ export async function GET() {
                  .replace(/\bPvc\b/gi, ' PVC')
                  .replace(/\bMdf\b/gi, ' MDF');
                  
+        let subcat = String(row['SUBCATEGORIA_WEB'] || '').trim();
+        if (subcat.toLowerCase() === 'herreria' || subcat.toLowerCase() === 'herrería') {
+          subcat = 'Angulos y Planchuelas';
+        }
+        if (!subcat) subcat = 'Otros';
+
         return {
           ARTICULO: art,
           ITEM: row['ITEM'] || '',
           CATEGORIA_WEB: cat,
-          SUBCATEGORIA_WEB: row['SUBCATEGORIA_WEB'] || 'Otros',
+          SUBCATEGORIA_WEB: subcat,
           STOCK: stockVal
         };
       })
