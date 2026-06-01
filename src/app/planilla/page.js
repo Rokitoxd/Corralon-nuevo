@@ -37,11 +37,11 @@ export default function Planilla() {
       setBlobUrl(url);
 
       // Build WhatsApp message with the real public URL
-      let msg = `Hola Corralón La Rural 👋, mi nombre es *${nombre}* y quiero cotizar materiales.\n`;
+      let msg = `Hola Corralón La Rural, mi nombre es *${nombre}* y quiero cotizar materiales.\n`;
       if (nota.trim()) {
-        msg += `\n📝 *Aclaración:* ${nota.trim()}\n`;
+        msg += `\n- *Aclaración:* ${nota.trim()}\n`;
       }
-      msg += `\n📎 *Documento adjunto:*\n${url}`;
+      msg += `\n*Documento adjunto:*\n${url}`;
 
       setEstado("success");
 
@@ -65,9 +65,9 @@ export default function Planilla() {
   };
 
   const abrirWhatsApp = () => {
-    let msg = `Hola Corralón La Rural 👋, mi nombre es *${nombre}* y quiero cotizar materiales.\n`;
-    if (nota.trim()) msg += `\n📝 *Aclaración:* ${nota.trim()}\n`;
-    if (blobUrl) msg += `\n📎 *Documento adjunto:*\n${blobUrl}`;
+    let msg = `Hola Corralón La Rural, mi nombre es *${nombre}* y quiero cotizar materiales.\n`;
+    if (nota.trim()) msg += `\n- *Aclaración:* ${nota.trim()}\n`;
+    if (blobUrl) msg += `\n*Documento adjunto:*\n${blobUrl}`;
     window.open(`https://wa.me/${tel_whatsapp}?text=${encodeURIComponent(msg)}`, "_blank");
   };
 
