@@ -13,7 +13,7 @@ export default function Home() {
   const [quantities, setQuantities] = useState({});
   const [toast, setToast] = useState({ show: false, message: "" });
 
-  const tel_whatsapp = "5493815139567";
+  const tel_whatsapp = "5493815156321";
 
   useEffect(() => {
     let retries = 0;

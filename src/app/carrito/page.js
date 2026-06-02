@@ -5,7 +5,7 @@ import Link from "next/link";
 
 export default function Carrito() {
   const { cart, removeFromCart, clearCart, updateQuantity, totalItems } = useCart();
-  const tel_whatsapp = "5493815139567";
+  const tel_whatsapp = "5493815156321";
 
   const enviarWhatsApp = () => {
     let pedido_texto = "Hola Corralon La Rural, Preciso la cotizacion de los siguientes materiales:\n\n";

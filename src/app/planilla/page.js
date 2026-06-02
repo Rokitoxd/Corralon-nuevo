@@ -8,7 +8,7 @@ export default function Planilla() {
   const [archivo, setArchivo] = useState(null);
   const [estado, setEstado] = useState("idle"); // idle | uploading | success | error
   const [blobUrl, setBlobUrl] = useState("");
-  const tel_whatsapp = "5493815139567";
+  const tel_whatsapp = "5493815156321";
 
   const handleEnviar = async (e) => {
     e.preventDefault();

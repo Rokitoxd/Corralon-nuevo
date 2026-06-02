@@ -94,7 +94,7 @@ const INITIAL_INPUTS = {
 export default function Calculadora() {
   const [inputs, setInputs] = useState(INITIAL_INPUTS);
   const [activeTab, setActiveTab] = useState("hormigon");
-  const tel_whatsapp = "5493815139567";
+  const tel_whatsapp = "5493815156321";
 
   const handleInputChange = (id, val) => {
     const num = Math.max(0, parseFloat(val) || 0);
@@ -442,7 +442,7 @@ export default function Calculadora() {
             <img src="/WhatsApp Image 2026-03-18 at 16.45.55.jpeg" alt="Corralón La Rural" width={56} height={56} style={{ borderRadius: '8px' }} />
             <div className="invoice-title">
               <h1>Corralón La Rural</h1>
-              <p>Av. Camino del Perú 1291, Tucumán · WhatsApp: +54 9 381 513-9567</p>
+              <p>Av. Camino del Perú 1291, Tucumán · WhatsApp: +54 9 3815 15-6321</p>
             </div>
           </div>
           <div className="invoice-meta">

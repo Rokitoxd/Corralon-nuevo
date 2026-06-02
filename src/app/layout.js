@@ -133,12 +133,12 @@ export default function RootLayout({ children }) {
               <div className="footer-col">
                 <h3>Contacto</h3>
                 <a
-                  href="https://wa.me/5493815139567"
+                  href="https://wa.me/5493815156321"
                   target="_blank"
                   rel="noopener noreferrer"
                   style={{ color: "#25d366", fontWeight: 600 }}
                 >
-                  💬 WhatsApp: +54 9 381 513-9567
+                  💬 WhatsApp: +54 9 3815 15-6321
                 </a>
                 <p style={{ marginTop: 8, fontSize: "0.82rem" }}>
                   💳 Efectivo · Transferencia · Débito/Crédito<br />
@@ -168,7 +168,7 @@ export default function RootLayout({ children }) {
 
           {/* ── Floating WhatsApp Button ── */}
           <a
-            href="https://wa.me/5493815139567"
+            href="https://wa.me/5493815156321"
             target="_blank"
             rel="noopener noreferrer"
             className="whatsapp-float"
