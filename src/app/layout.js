@@ -23,6 +23,9 @@ export const metadata = {
     "Disensa",
     "envíos a obra",
   ],
+  icons: {
+    icon: "/favicon.png",
+  },
 };
 
 export default function RootLayout({ children }) {
