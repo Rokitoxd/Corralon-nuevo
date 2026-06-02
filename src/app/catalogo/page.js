@@ -34,6 +34,16 @@ export default function Catalogo() {
   const [chapaMetros, setChapaMetros] = useState("");
   const [chapaQty, setChapaQty] = useState(1);
 
+  const [chapaLisaCalibre, setChapaLisaCalibre] = useState("20");
+  const [chapaLisaMedida, setChapaLisaMedida] = useState("1 x 2");
+  const [chapaLisaQty, setChapaLisaQty] = useState(1);
+
+  useEffect(() => {
+    if (chapaLisaCalibre === "24") {
+      setChapaLisaMedida("1.22 x 2.44");
+    }
+  }, [chapaLisaCalibre]);
+
   useEffect(() => {
     if (aridoTipo === "Ripio Bruto Fino") {
       setAridoUnidad("m3");
@@ -90,7 +100,6 @@ export default function Catalogo() {
       "Cinc Cal 27 Acanalada": `CHAPA ZINC CAL 27 DE ${metrosLabel} MTS`,
       "Traslúcida": `CHAPA TRASLUCIDA DE ${metrosLabel} MTS`,
       "Trapezoidal": `CHAPA TRAPEZOIDAL DE ${metrosLabel} MTS`,
-      "Lisa Negra": `CHAPA LISA (NEGRA) DE ${metrosLabel} MTS`,
     };
     return names[chapaTipo] || "";
   }, [chapaTipo, chapaMetros]);
@@ -109,6 +118,44 @@ export default function Catalogo() {
     setChapaTipo("");
     setChapaMetros("");
     setChapaQty(1);
+  };
+
+  // ── Chapas Lisas (Negras) Widget Logic ──
+  const matchedChapaLisa = useMemo(() => {
+    if (!chapaLisaCalibre || !chapaLisaMedida) return null;
+    return articulos.find(a => {
+      const nameLower = a.ARTICULO.toLowerCase();
+      if (!nameLower.includes("chapa") || !nameLower.includes("dd")) return false;
+      
+      const calibreTerm = `dd ${chapaLisaCalibre}`;
+      if (!nameLower.includes(calibreTerm)) return false;
+      
+      if (chapaLisaMedida === "1 x 2") {
+        return nameLower.includes("1 x 2") || nameLower.includes("1x2");
+      } else if (chapaLisaMedida === "1.22 x 2.44") {
+        return nameLower.includes("1.22") || nameLower.includes("1,22");
+      }
+      return false;
+    });
+  }, [chapaLisaCalibre, chapaLisaMedida, articulos]);
+
+  const chapaLisaProductName = useMemo(() => {
+    if (!chapaLisaCalibre || !chapaLisaMedida) return "";
+    return `Chapa Lisa (Negra) Calibre ${chapaLisaCalibre} de ${chapaLisaMedida} Mts`;
+  }, [chapaLisaCalibre, chapaLisaMedida]);
+
+  const handleAddChapaLisa = () => {
+    if (!chapaLisaCalibre || !chapaLisaMedida) {
+      showToast(`⚠️ Seleccioná calibre y medida.`);
+      return;
+    }
+    const finalItem = matchedChapaLisa
+      ? { ...matchedChapaLisa, ARTICULO: chapaLisaProductName }
+      : { ARTICULO: chapaLisaProductName, CATEGORIA_WEB: "⚙️ Hierros y Chapas" };
+
+    addToCart(finalItem, chapaLisaQty);
+    showToast(`✓ Agregado: ${chapaLisaQty} × ${chapaLisaProductName}`);
+    setChapaLisaQty(1);
   };
 
   useEffect(() => {
@@ -461,7 +508,6 @@ export default function Catalogo() {
               <option value="Cinc Cal 27 Acanalada">Chapa Cinc Calibre 27 Acanalada</option>
               <option value="Traslúcida">Chapa Traslúcida</option>
               <option value="Trapezoidal">Chapa Trapezoidal</option>
-              <option value="Lisa Negra">Chapa Lisa (Negra)</option>
             </select>
           </div>
 
@@ -541,6 +587,155 @@ export default function Catalogo() {
                 opacity: chapaReady ? 1 : 0.6,
                 cursor: chapaReady ? 'pointer' : 'not-allowed',
                 boxShadow: chapaReady ? '0 4px 12px rgba(183,28,28,0.2)' : 'none',
+              }}
+            >
+              Agregar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  const renderChapasLisasWidget = () => (
+    <div className="card animate-fade-in aridos-widget" style={{
+      borderLeft: '4px solid #475569',
+      marginBottom: '32px',
+      background: 'var(--surface-color)',
+      boxShadow: 'var(--shadow-md)',
+      animation: 'fadeInUp 0.4s ease-out'
+    }}>
+      {/* Image container */}
+      <div className="aridos-widget-img">
+        <img
+          src="/cat_hierros_chapas.png"
+          alt="Chapas Lisas Doble Decapadas"
+          style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+        />
+        <div style={{
+          position: 'absolute',
+          top: '16px',
+          left: '16px',
+          background: '#475569',
+          color: 'white',
+          padding: '4px 12px',
+          borderRadius: '50px',
+          fontSize: '0.8rem',
+          fontWeight: 700,
+          boxShadow: 'var(--shadow-sm)'
+        }}>
+          Chapa Lisa Negra (DD) ⚙️
+        </div>
+      </div>
+
+      {/* Control panel */}
+      <div className="aridos-widget-controls">
+        <h3 style={{ fontSize: '1.4rem', color: 'var(--secondary)', marginBottom: '8px', marginTop: 0 }}>
+          Selector de Chapas Lisas (Negras) 🏗️
+        </h3>
+        <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '24px', lineHeight: 1.5 }}>
+          Elegí el calibre y las dimensiones de la chapa lisa (negra) que necesitás para tu proyecto.
+        </p>
+
+        <div style={{ display: 'flex', gap: '16px', marginBottom: '20px', flexWrap: 'wrap' }}>
+          {/* Calibre */}
+          <div style={{ flex: 1, minWidth: '140px' }}>
+            <label style={{ display: 'block', marginBottom: '8px', fontWeight: 600, fontSize: '0.85rem', color: 'var(--secondary)' }}>
+              Calibre
+            </label>
+            <select
+              value={chapaLisaCalibre}
+              onChange={(e) => setChapaLisaCalibre(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '12px',
+                borderRadius: '8px',
+                border: '1px solid var(--border-color)',
+                backgroundColor: 'white',
+                fontWeight: 500,
+                color: 'var(--text-main)',
+                cursor: 'pointer',
+                outline: 'none',
+                boxShadow: 'var(--shadow-sm)'
+              }}
+            >
+              <option value="16">Calibre 16 (1.6 mm)</option>
+              <option value="18">Calibre 18 (1.2 mm)</option>
+              <option value="20">Calibre 20 (0.9 mm)</option>
+              <option value="24">Calibre 24 (0.56 mm)</option>
+            </select>
+          </div>
+
+          {/* Medida */}
+          <div style={{ flex: 1, minWidth: '140px' }}>
+            <label style={{ display: 'block', marginBottom: '8px', fontWeight: 600, fontSize: '0.85rem', color: 'var(--secondary)' }}>
+              Medidas de Chapa
+            </label>
+            <select
+              value={chapaLisaMedida}
+              onChange={(e) => setChapaLisaMedida(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '12px',
+                borderRadius: '8px',
+                border: '1px solid var(--border-color)',
+                backgroundColor: 'white',
+                fontWeight: 500,
+                color: 'var(--text-main)',
+                cursor: 'pointer',
+                outline: 'none',
+                boxShadow: 'var(--shadow-sm)'
+              }}
+            >
+              {chapaLisaCalibre !== "24" && <option value="1 x 2">1.00 x 2.00 mts</option>}
+              <option value="1.22 x 2.44">1.22 x 2.44 mts</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Product display and CTA */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginTop: '8px',
+          borderTop: '1px solid var(--border-color)',
+          paddingTop: '20px',
+          flexWrap: 'wrap',
+          gap: '16px'
+        }}>
+          <div>
+            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block' }}>
+              Producto Seleccionado:
+            </span>
+            <span style={{ fontWeight: 600, color: 'var(--secondary)', fontSize: '0.95rem' }}>
+              {chapaLisaProductName}
+            </span>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <input
+              type="number"
+              min="1"
+              value={chapaLisaQty}
+              onChange={(e) => setChapaLisaQty(Math.max(1, parseInt(e.target.value) || 1))}
+              style={{
+                width: '70px',
+                padding: '12px',
+                textAlign: 'center',
+                borderRadius: '8px',
+                border: '1px solid var(--border-color)',
+                fontWeight: 600,
+                boxShadow: 'var(--shadow-sm)'
+              }}
+            />
+            <button
+              className="btn"
+              onClick={handleAddChapaLisa}
+              style={{
+                padding: '12px 24px',
+                borderRadius: '8px',
+                fontWeight: 700,
+                backgroundColor: '#475569',
+                boxShadow: '0 4px 12px rgba(71,85,105,0.2)',
               }}
             >
               Agregar
@@ -995,7 +1190,10 @@ export default function Catalogo() {
                     {isAridos ? (
                       renderAridosWidget()
                     ) : isChapas ? (
-                      <>{renderChapasWidget()}</>
+                      <>
+                        {renderChapasWidget()}
+                        {renderChapasLisasWidget()}
+                      </>
                     ) : (
                       <div className="grid">
                         {items.map((item, idx) => renderProductCard(item, `${subcat}-${idx}`))}
