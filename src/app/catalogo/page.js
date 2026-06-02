@@ -34,13 +34,15 @@ export default function Catalogo() {
   const [chapaMetros, setChapaMetros] = useState("");
   const [chapaQty, setChapaQty] = useState(1);
 
-  const [chapaLisaCalibre, setChapaLisaCalibre] = useState("20");
-  const [chapaLisaMedida, setChapaLisaMedida] = useState("1 x 2");
+  const [chapaLisaCalibre, setChapaLisaCalibre] = useState("");
+  const [chapaLisaMedida, setChapaLisaMedida] = useState("");
   const [chapaLisaQty, setChapaLisaQty] = useState(1);
 
   useEffect(() => {
     if (chapaLisaCalibre === "24") {
       setChapaLisaMedida("1.22 x 2.44");
+    } else {
+      setChapaLisaMedida("");
     }
   }, [chapaLisaCalibre]);
 
@@ -144,8 +146,10 @@ export default function Catalogo() {
     return `Chapa Lisa (Negra) Calibre ${chapaLisaCalibre} de ${chapaLisaMedida} Mts`;
   }, [chapaLisaCalibre, chapaLisaMedida]);
 
+  const chapaLisaReady = chapaLisaCalibre !== "" && chapaLisaMedida !== "";
+
   const handleAddChapaLisa = () => {
-    if (!chapaLisaCalibre || !chapaLisaMedida) {
+    if (!chapaLisaReady) {
       showToast(`⚠️ Seleccioná calibre y medida.`);
       return;
     }
@@ -155,6 +159,8 @@ export default function Catalogo() {
 
     addToCart(finalItem, chapaLisaQty);
     showToast(`✓ Agregado: ${chapaLisaQty} × ${chapaLisaProductName}`);
+    setChapaLisaCalibre("");
+    setChapaLisaMedida("");
     setChapaLisaQty(1);
   };
 
@@ -659,6 +665,7 @@ export default function Catalogo() {
                 boxShadow: 'var(--shadow-sm)'
               }}
             >
+              <option value="" disabled>— Seleccionar calibre —</option>
               <option value="16">Calibre 16 (1.6 mm)</option>
               <option value="18">Calibre 18 (1.2 mm)</option>
               <option value="20">Calibre 20 (0.9 mm)</option>
@@ -674,6 +681,7 @@ export default function Catalogo() {
             <select
               value={chapaLisaMedida}
               onChange={(e) => setChapaLisaMedida(e.target.value)}
+              disabled={!chapaLisaCalibre}
               style={{
                 width: '100%',
                 padding: '12px',
@@ -687,8 +695,9 @@ export default function Catalogo() {
                 boxShadow: 'var(--shadow-sm)'
               }}
             >
-              {chapaLisaCalibre !== "24" && <option value="1 x 2">1.00 x 2.00 mts</option>}
-              <option value="1.22 x 2.44">1.22 x 2.44 mts</option>
+              <option value="" disabled>— Seleccionar medida —</option>
+              {chapaLisaCalibre && chapaLisaCalibre !== "24" && <option value="1 x 2">1.00 x 2.00 mts</option>}
+              {chapaLisaCalibre && <option value="1.22 x 2.44">1.22 x 2.44 mts</option>}
             </select>
           </div>
         </div>
@@ -708,8 +717,8 @@ export default function Catalogo() {
             <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block' }}>
               Producto Seleccionado:
             </span>
-            <span style={{ fontWeight: 600, color: 'var(--secondary)', fontSize: '0.95rem' }}>
-              {chapaLisaProductName}
+            <span style={{ fontWeight: 600, color: chapaLisaReady ? 'var(--secondary)' : 'var(--text-muted)', fontSize: '0.95rem' }}>
+              {chapaLisaReady ? chapaLisaProductName : "Seleccioná calibre y medida"}
             </span>
           </div>
 
@@ -732,12 +741,15 @@ export default function Catalogo() {
             <button
               className="btn"
               onClick={handleAddChapaLisa}
+              disabled={!chapaLisaReady}
               style={{
                 padding: '12px 24px',
                 borderRadius: '8px',
                 fontWeight: 700,
                 backgroundColor: '#475569',
-                boxShadow: '0 4px 12px rgba(71,85,105,0.2)',
+                opacity: chapaLisaReady ? 1 : 0.6,
+                cursor: chapaLisaReady ? 'pointer' : 'not-allowed',
+                boxShadow: chapaLisaReady ? '0 4px 12px rgba(71,85,105,0.2)' : 'none',
               }}
             >
               Agregar
