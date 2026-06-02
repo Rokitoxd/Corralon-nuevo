@@ -90,6 +90,7 @@ export default function Catalogo() {
       "Cinc Cal 27 Acanalada": `CHAPA ZINC CAL 27 DE ${metrosLabel} MTS`,
       "Traslúcida": `CHAPA TRASLUCIDA DE ${metrosLabel} MTS`,
       "Trapezoidal": `CHAPA TRAPEZOIDAL DE ${metrosLabel} MTS`,
+      "Lisa Negra": `CHAPA LISA (NEGRA) DE ${metrosLabel} MTS`,
     };
     return names[chapaTipo] || "";
   }, [chapaTipo, chapaMetros]);
@@ -460,6 +461,7 @@ export default function Catalogo() {
               <option value="Cinc Cal 27 Acanalada">Chapa Cinc Calibre 27 Acanalada</option>
               <option value="Traslúcida">Chapa Traslúcida</option>
               <option value="Trapezoidal">Chapa Trapezoidal</option>
+              <option value="Lisa Negra">Chapa Lisa (Negra)</option>
             </select>
           </div>
 
@@ -618,6 +620,53 @@ export default function Catalogo() {
       <div className="page-header">
         <h2>🛒 Catálogo Minorista</h2>
         <p>Encontrá todo lo que necesitás para tu obra.</p>
+      </div>
+
+      {/* WHATSAPP REMINDER BANNER */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '14px',
+        padding: '16px 20px',
+        marginBottom: '24px',
+        borderRadius: '12px',
+        background: 'linear-gradient(135deg, rgba(37,211,102,0.08) 0%, rgba(37,211,102,0.03) 100%)',
+        border: '1px solid rgba(37,211,102,0.25)',
+        animation: 'fadeInUp 0.5s ease-out',
+      }}>
+        <span style={{ fontSize: '1.6rem', flexShrink: 0 }}>📲</span>
+        <div style={{ flex: 1 }}>
+          <p style={{ margin: 0, fontWeight: 600, color: 'var(--secondary)', fontSize: '0.95rem', lineHeight: 1.4 }}>
+            ¿No encontrás lo que buscás?
+          </p>
+          <p style={{ margin: '4px 0 0', color: 'var(--text-muted)', fontSize: '0.88rem', lineHeight: 1.4 }}>
+            Consultanos por <strong style={{ color: '#25D366' }}>WhatsApp</strong> la disponibilidad de cualquier material o artículo que no figure en el catálogo.
+          </p>
+        </div>
+        <a
+          href="https://wa.me/5493815156321?text=Hola%2C%20quiero%20consultar%20la%20disponibilidad%20de%20un%20producto%20que%20no%20encontr%C3%A9%20en%20el%20cat%C3%A1logo."
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            flexShrink: 0,
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+            padding: '10px 20px',
+            borderRadius: '50px',
+            background: '#25D366',
+            color: 'white',
+            fontWeight: 700,
+            fontSize: '0.88rem',
+            textDecoration: 'none',
+            boxShadow: '0 4px 12px rgba(37,211,102,0.25)',
+            transition: 'transform 0.2s, box-shadow 0.2s',
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 16px rgba(37,211,102,0.35)'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(37,211,102,0.25)'; }}
+        >
+          💬 Consultar
+        </a>
       </div>
 
       {/* BREADCRUMB */}
@@ -946,10 +995,7 @@ export default function Catalogo() {
                     {isAridos ? (
                       renderAridosWidget()
                     ) : isChapas ? (
-                      <>{renderChapasWidget()}
-                      <div className="grid">
-                        {items.map((item, idx) => renderProductCard(item, `${subcat}-${idx}`))}
-                      </div></>
+                      <>{renderChapasWidget()}</>
                     ) : (
                       <div className="grid">
                         {items.map((item, idx) => renderProductCard(item, `${subcat}-${idx}`))}

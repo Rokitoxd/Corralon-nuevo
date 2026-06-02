@@ -64,7 +64,7 @@ const SECTIONS = [
       { id: "revoqueGrueso", label: "Revoque Grueso (con Cemento de albañilería)", unit: "m²", placeholder: "m² a revocar", desc: "Cemento de albañilería y arena mediana (1 bolsa / 5 m²)" },
       { id: "revoqueFino", label: "Revoque Fino", unit: "m²", placeholder: "m² a lucir", desc: "Bolsa de fino para terminación (1 bolsa / 9 m²)" },
       { id: "adhesivo", label: "Pegamento / Adhesivo Cerámico", unit: "m²", placeholder: "m² a colocar", desc: "Pegamento impermeable (1 bolsa / 8.5 m²)" },
-      { id: "revoqueStopkal", label: "Revoque con Stopkal", unit: "m²", placeholder: "m² de revoque", desc: "Cemento (1.5kg/m²) y Stopkal aditivo (0.075L/m²)" },
+
     ]
   }
 ];
@@ -87,7 +87,7 @@ const INITIAL_INPUTS = {
   revoqueGrueso: 0,
   revoqueFino: 0,
   adhesivo: 0,
-  revoqueStopkal: 0,
+
   mamposteria08: 0
 };
 
