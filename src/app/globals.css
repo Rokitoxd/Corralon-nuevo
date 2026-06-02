@@ -86,6 +86,7 @@
 html {
   scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
+  touch-action: manipulation;
 }
 
 body {
@@ -101,7 +102,8 @@ body {
     radial-gradient(circle at 20% 80%, rgba(180, 30, 30, 0.03) 0%, transparent 50%),
     radial-gradient(circle at 80% 20%, rgba(26, 26, 46, 0.03) 0%, transparent 50%),
     linear-gradient(180deg, var(--bg) 0%, var(--bg-subtle) 100%);
-  background-attachment: fixed;
+  background-attachment: scroll;
+  -webkit-overflow-scrolling: touch;
 }
 
 a {
@@ -646,6 +648,16 @@ input, select, textarea {
 
 .card:hover::before {
   opacity: 1;
+}
+
+@media (hover: none) {
+  .card:hover {
+    transform: none;
+    box-shadow: var(--shadow-sm);
+  }
+  .card:hover::before {
+    opacity: 0;
+  }
 }
 
 
@@ -1362,7 +1374,7 @@ input, select, textarea {
   .whatsapp-float {
     width: 52px;
     height: 52px;
-    bottom: 20px;
+    bottom: max(20px, env(safe-area-inset-bottom, 20px));
     right: 20px;
   }
 
@@ -1374,7 +1386,7 @@ input, select, textarea {
   .toast {
     left: 16px;
     right: 16px;
-    bottom: 80px;
+    bottom: max(80px, calc(env(safe-area-inset-bottom, 0px) + 80px));
     text-align: center;
   }
 
@@ -1385,6 +1397,39 @@ input, select, textarea {
 
   .main-content {
     margin-top: 20px;
+  }
+
+  .btn {
+    min-height: 44px;
+  }
+
+  .item-card input[type="number"] {
+    min-height: 44px;
+    min-width: 44px;
+    font-size: 16px;
+  }
+
+  select {
+    font-size: 16px;
+  }
+
+  input[type="text"],
+  input[type="number"],
+  input[type="email"],
+  input[type="tel"],
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}
+
+/* Very small phones */
+@media (max-width: 380px) {
+  .hero-banner {
+    padding: 32px 16px;
+  }
+  .hero-banner h2 {
+    font-size: 1.25rem;
   }
 }
 

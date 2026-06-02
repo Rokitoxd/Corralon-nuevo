@@ -28,6 +28,14 @@ export const metadata = {
   },
 };
 
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  viewportFit: "cover",
+  themeColor: "#a00e08",
+};
+
 export default function RootLayout({ children }) {
   return (
     <html lang="es" className={inter.variable} data-scroll-behavior="smooth">

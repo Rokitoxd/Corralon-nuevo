@@ -74,54 +74,70 @@ export default function Home() {
           0%, 100% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.4); }
           50% { box-shadow: 0 0 0 12px rgba(37, 211, 102, 0); }
         }
+        .hero-section {
+          width: 100vw;
+          margin-left: calc(-50vw + 50%);
+          background-image: linear-gradient(rgba(127, 0, 0, 0.82), rgba(26, 26, 46, 0.95)), url("/storefront_larural.png");
+          background-size: cover;
+          background-position: center;
+          padding: clamp(60px, 12vw, 120px) 20px;
+          text-align: center;
+          color: white;
+          margin-top: -30px;
+        }
+        .hero-buttons {
+          display: flex;
+          gap: 16px;
+          justify-content: center;
+          flex-wrap: wrap;
+        }
+        .hero-btn {
+          padding: 14px 32px;
+          border-radius: 50px;
+          font-weight: 700;
+          font-size: clamp(0.88rem, 2.5vw, 1.05rem);
+          transition: transform 0.2s, box-shadow 0.2s;
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          text-align: center;
+          justify-content: center;
+          -webkit-tap-highlight-color: transparent;
+        }
+        @media (max-width: 600px) {
+          .hero-buttons {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 12px;
+            padding: 0 8px;
+          }
+          .hero-btn {
+            padding: 14px 20px;
+            width: 100%;
+          }
+        }
       `}</style>
 
       {/* HERO SECTION */}
-      <section style={{
-        width: '100vw',
-        marginLeft: 'calc(-50vw + 50%)',
-        backgroundImage: 'linear-gradient(rgba(127, 0, 0, 0.82), rgba(26, 26, 46, 0.95)), url("/storefront_larural.png")',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        padding: '120px 20px',
-        textAlign: 'center',
-        color: 'white',
-        marginTop: '-30px',
-      }}>
+      <section className="hero-section">
         <div style={{ maxWidth: '800px', margin: '0 auto', animation: 'fadeInUp 0.8s ease-out' }}>
           <h1 style={{ fontSize: 'clamp(2.2rem, 5vw, 3.5rem)', fontWeight: 800, marginBottom: '16px', lineHeight: 1.2, textShadow: '0 2px 10px rgba(0,0,0,0.3)' }}>
             Todo para tu obra en un solo lugar
           </h1>
-          <p style={{ fontSize: 'clamp(1.05rem, 2.5vw, 1.3rem)', opacity: 0.95, marginBottom: '32px', maxWidth: '650px', margin: '0 auto 32px', textShadow: '0 1px 5px rgba(0,0,0,0.3)' }}>
+          <p style={{ fontSize: 'clamp(1.05rem, 2.5vw, 1.3rem)', opacity: 0.95, maxWidth: '650px', margin: '0 auto 32px', textShadow: '0 1px 5px rgba(0,0,0,0.3)' }}>
             Materiales de construcción, ferretería, plomería y más. Envíos con flota propia a toda la provincia de Tucumán.
           </p>
-          <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap' }}>
-            <Link href="/planilla" style={{
+          <div className="hero-buttons">
+            <Link href="/planilla" className="hero-btn" style={{
               background: 'white',
               color: '#b71c1c',
-              padding: '14px 32px',
-              borderRadius: '50px',
-              fontWeight: 700,
-              fontSize: '1.05rem',
-              transition: 'transform 0.2s, box-shadow 0.2s',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '8px',
               boxShadow: '0 4px 15px rgba(0,0,0,0.15)'
             }}>
               📄 Envía tu imagen o documento para asesorarte
             </Link>
-            <a href={`https://wa.me/${tel_whatsapp}`} target="_blank" rel="noopener noreferrer" style={{
+            <a href={`https://wa.me/${tel_whatsapp}`} target="_blank" rel="noopener noreferrer" className="hero-btn" style={{
               background: '#25D366',
               color: 'white',
-              padding: '14px 32px',
-              borderRadius: '50px',
-              fontWeight: 700,
-              fontSize: '1.05rem',
-              transition: 'transform 0.2s, box-shadow 0.2s',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '8px',
               animation: 'pulseGlow 2s infinite',
               boxShadow: '0 4px 15px rgba(37,211,102,0.3)'
             }}>
@@ -575,12 +591,14 @@ export default function Home() {
       {/* TOAST */}
       {toast.show && (
         <div style={{
-          position: 'fixed', bottom: '24px', right: '24px', zIndex: 9999,
+          position: 'fixed', bottom: 'max(24px, env(safe-area-inset-bottom, 24px))',
+          left: '16px', right: '16px', zIndex: 9999,
           background: 'var(--success)', color: 'white',
           padding: '16px 28px', borderRadius: '12px',
           boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
           fontWeight: 600, fontSize: '0.95rem',
           animation: 'fadeInUp 0.3s ease-out',
+          textAlign: 'center',
         }}>
           {toast.message}
         </div>

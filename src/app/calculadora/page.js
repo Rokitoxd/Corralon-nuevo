@@ -244,6 +244,7 @@ export default function Calculadora() {
           overflow-x: auto;
           padding-bottom: 6px;
           white-space: nowrap;
+          position: relative;
         }
         .tab-btn {
           padding: 10px 18px;
@@ -255,10 +256,15 @@ export default function Calculadora() {
           cursor: pointer;
           border-radius: var(--radius);
           transition: all 0.2s;
+          -webkit-tap-highlight-color: transparent;
         }
         .tab-btn.active {
           color: var(--primary);
           background: rgba(192, 22, 14, 0.08);
+          border: 1.5px solid rgba(192, 22, 14, 0.2);
+        }
+        .tabs-hint {
+          display: none;
         }
         .calc-input-row {
           display: flex;
@@ -431,6 +437,61 @@ export default function Calculadora() {
           }
           .calculator-summary {
             position: static;
+          }
+        }
+        @media (max-width: 768px) {
+          .tabs-header {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            border-bottom: none;
+            overflow-x: visible;
+            white-space: normal;
+            padding-bottom: 0;
+            margin-bottom: 20px;
+          }
+          .tab-btn {
+            padding: 12px 10px;
+            font-size: 0.82rem;
+            text-align: center;
+            border-radius: 10px;
+            background: var(--bg-color, #f5f5f5);
+            border: 1.5px solid var(--border-color, #e8e8e8);
+            white-space: normal;
+            line-height: 1.3;
+          }
+          .tab-btn.active {
+            background: rgba(192, 22, 14, 0.08);
+            border-color: var(--primary);
+            color: var(--primary);
+            box-shadow: 0 2px 8px rgba(192, 22, 14, 0.12);
+          }
+          .tabs-hint {
+            display: none;
+          }
+          .calc-input-row {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 10px;
+          }
+          .calc-input-field {
+            width: 100%;
+          }
+          .calc-input-field input {
+            font-size: 16px;
+            padding: 12px 36px 12px 14px;
+          }
+          .inputs-card {
+            padding: 16px !important;
+          }
+        }
+        @media (max-width: 480px) {
+          .inputs-card {
+            padding: 12px !important;
+          }
+          .tab-btn {
+            padding: 10px 8px;
+            font-size: 0.78rem;
           }
         }
       `}</style>
