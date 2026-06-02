@@ -595,6 +595,8 @@ export default function Catalogo() {
         </div>
       </div>
     </div>
+  );
+
   const renderChapasLisasWidget = () => (
     <div className="card animate-fade-in aridos-widget" style={{
       borderLeft: '4px solid #475569',
