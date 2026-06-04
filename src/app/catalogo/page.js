@@ -48,6 +48,10 @@ export default function Catalogo() {
   const [ladrilloMedida, setLadrilloMedida] = useState("");
   const [ladrilloQty, setLadrilloQty] = useState(1);
 
+  const [perfilTipo, setPerfilTipo] = useState("Angulo");
+  const [perfilMedida, setPerfilMedida] = useState("");
+  const [perfilQty, setPerfilQty] = useState(1);
+
   useEffect(() => {
     setViguetaMedida("");
   }, [viguetaTipo]);
@@ -1328,6 +1332,214 @@ export default function Catalogo() {
     </div>
   );
 
+  const renderAngulosPlanchuelasWidget = (subcatItems) => {
+    // Filter items based on the active type (Angulo, Planchuela, Planchuela Perforada)
+    const filteredPerfilItems = subcatItems.filter(item => {
+      const nameLower = item.ARTICULO.toLowerCase();
+      if (perfilTipo === "Angulo") {
+        return nameLower.startsWith("angulo");
+      } else if (perfilTipo === "Planchuela") {
+        return nameLower.startsWith("planchuela") && !nameLower.includes("perforada");
+      } else if (perfilTipo === "Planchuela Perforada") {
+        return nameLower.includes("planchuela perforada");
+      }
+      return false;
+    });
+
+    // Extract size and make sorted options
+    const medidasOptions = filteredPerfilItems.map(item => {
+      let size = item.ARTICULO;
+      if (perfilTipo === "Angulo") {
+        size = size.replace(/^angulo\s+/i, "");
+      } else if (perfilTipo === "Planchuela") {
+        size = size.replace(/^planchuela\s+/i, "");
+      } else if (perfilTipo === "Planchuela Perforada") {
+        size = size.replace(/^planchuela perforada\s+/i, "");
+      }
+      size = size.replace(/\s+/g, ' ').trim();
+      return {
+        fullName: item.ARTICULO,
+        sizeDisplay: size,
+        item: item
+      };
+    }).sort((a, b) => a.sizeDisplay.localeCompare(b.sizeDisplay));
+
+    const matchedPerfilItem = perfilMedida ? filteredPerfilItems.find(item => item.ARTICULO === perfilMedida) : null;
+    const perfilReady = perfilMedida !== "";
+
+    const handleAddPerfil = () => {
+      if (!perfilReady) {
+        showToast("⚠️ Seleccioná una medida.");
+        return;
+      }
+      if (matchedPerfilItem) {
+        addToCart(matchedPerfilItem, perfilQty);
+        showToast(`✓ Agregado: ${perfilQty} × ${matchedPerfilItem.ARTICULO}`);
+        setPerfilMedida("");
+        setPerfilQty(1);
+      }
+    };
+
+    return (
+      <div className="card animate-fade-in aridos-widget" style={{
+        borderLeft: '4px solid #b71c1c',
+        marginBottom: '32px',
+        background: 'var(--surface-color)',
+        boxShadow: 'var(--shadow-md)',
+        animation: 'fadeInUp 0.4s ease-out'
+      }}>
+        {/* Image container */}
+        <div className="aridos-widget-img">
+          <img
+            src="/cat_hierros_chapas.png"
+            alt="Ángulos y Planchuelas de Acero"
+            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+          />
+          <div style={{
+            position: 'absolute',
+            top: '16px',
+            left: '16px',
+            background: '#b71c1c',
+            color: 'white',
+            padding: '4px 12px',
+            borderRadius: '50px',
+            fontSize: '0.8rem',
+            fontWeight: 700,
+            boxShadow: 'var(--shadow-sm)'
+          }}>
+            Perfiles de Acero 🔩
+          </div>
+        </div>
+
+        {/* Control panel */}
+        <div className="aridos-widget-controls">
+          <h3 style={{ fontSize: '1.4rem', color: 'var(--secondary)', marginBottom: '8px', marginTop: 0 }}>
+            Selector de Ángulos y Planchuelas 📐
+          </h3>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '24px', lineHeight: 1.5 }}>
+            Seleccioná el tipo de perfil de acero y la medida requerida. Todos los perfiles son de primera calidad.
+          </p>
+
+          <div style={{ display: 'flex', gap: '16px', marginBottom: '20px', flexWrap: 'wrap' }}>
+            {/* Tipo de Perfil */}
+            <div style={{ flex: 1, minWidth: '180px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: 600, fontSize: '0.85rem', color: 'var(--secondary)' }}>
+                Tipo de Perfil
+              </label>
+              <select
+                value={perfilTipo}
+                onChange={(e) => {
+                  setPerfilTipo(e.target.value);
+                  setPerfilMedida("");
+                }}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  borderRadius: '8px',
+                  border: '1px solid var(--border-color)',
+                  backgroundColor: 'white',
+                  fontWeight: 500,
+                  color: 'var(--text-main)',
+                  cursor: 'pointer',
+                  outline: 'none',
+                  boxShadow: 'var(--shadow-sm)'
+                }}
+              >
+                <option value="Angulo">Ángulo de Acero 📐</option>
+                <option value="Planchuela">Planchuela de Acero ➖</option>
+                <option value="Planchuela Perforada">Planchuela Perforada ⚙️</option>
+              </select>
+            </div>
+
+            {/* Medida / Sección */}
+            <div style={{ flex: 1, minWidth: '140px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: 600, fontSize: '0.85rem', color: 'var(--secondary)' }}>
+                Medida (Pulgadas / mm)
+              </label>
+              <select
+                value={perfilMedida}
+                onChange={(e) => setPerfilMedida(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  borderRadius: '8px',
+                  border: '1px solid var(--border-color)',
+                  backgroundColor: 'white',
+                  fontWeight: 500,
+                  color: 'var(--text-main)',
+                  cursor: 'pointer',
+                  outline: 'none',
+                  boxShadow: 'var(--shadow-sm)'
+                }}
+              >
+                <option value="">— Seleccionar medida —</option>
+                {medidasOptions.map(opt => (
+                  <option key={opt.fullName} value={opt.fullName}>{opt.sizeDisplay}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Product display and CTA */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginTop: '8px',
+            borderTop: '1px solid var(--border-color)',
+            paddingTop: '20px',
+            flexWrap: 'wrap',
+            gap: '16px'
+          }}>
+            <div>
+              <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block' }}>
+                Producto Seleccionado:
+              </span>
+              <span style={{ fontWeight: 600, color: perfilReady ? 'var(--secondary)' : 'var(--text-muted)', fontSize: '0.95rem' }}>
+                {perfilReady ? (matchedPerfilItem ? matchedPerfilItem.ARTICULO : "No disponible") : "Seleccioná medida"}
+              </span>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <input
+                type="number"
+                min="1"
+                value={perfilQty}
+                onChange={(e) => setPerfilQty(Math.max(1, parseInt(e.target.value) || 1))}
+                style={{
+                  width: '70px',
+                  padding: '12px',
+                  textAlign: 'center',
+                  borderRadius: '8px',
+                  border: '1px solid var(--border-color)',
+                  fontWeight: 600,
+                  boxShadow: 'var(--shadow-sm)'
+                }}
+              />
+              <button
+                className="btn btn-primary"
+                onClick={handleAddPerfil}
+                disabled={!perfilReady}
+                style={{
+                  padding: '12px 24px',
+                  borderRadius: '8px',
+                  fontWeight: 700,
+                  backgroundColor: '#b71c1c',
+                  border: 'none',
+                  opacity: perfilReady ? 1 : 0.6,
+                  cursor: perfilReady ? 'pointer' : 'not-allowed',
+                  boxShadow: perfilReady ? '0 4px 12px rgba(183,28,28,0.2)' : 'none',
+                }}
+              >
+                Agregar
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <>
       <style>{`
@@ -1821,6 +2033,7 @@ export default function Catalogo() {
                 const isChapas = subcat.toLowerCase() === "chapas";
                 const isViguetas = subcat.toLowerCase() === "viguetas";
                 const isLadrillos = subcat.toLowerCase() === "ladrillos";
+                const isAngulosPlanchuelas = subcat.toLowerCase() === "angulos y planchuelas";
                 return (
                   <div key={subcat} style={{ marginBottom: '40px' }}>
                     <h4 style={{
@@ -1842,6 +2055,25 @@ export default function Catalogo() {
                       renderViguetasWidget()
                     ) : isLadrillos ? (
                       renderLadrillosWidget()
+                    ) : isAngulosPlanchuelas ? (
+                      <>
+                        {renderAngulosPlanchuelasWidget(items)}
+                        {(() => {
+                          const otherItems = items.filter(item => {
+                            const name = item.ARTICULO.toLowerCase();
+                            return !name.includes("angulo") && !name.includes("planchuela");
+                          });
+                          if (otherItems.length === 0) return null;
+                          return (
+                            <div style={{ marginTop: '28px' }}>
+                              <h5 style={{ fontSize: '1.05rem', color: 'var(--secondary)', marginBottom: '16px', fontWeight: 600 }}>Otros Artículos de Herrería</h5>
+                              <div className="grid">
+                                {otherItems.map((item, idx) => renderProductCard(item, `other-herreria-${idx}`))}
+                              </div>
+                            </div>
+                          );
+                        })()}
+                      </>
                     ) : (
                       <div className="grid">
                         {items.map((item, idx) => renderProductCard(item, `${subcat}-${idx}`))}

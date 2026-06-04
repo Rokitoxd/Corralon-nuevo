@@ -53,7 +53,7 @@ export async function GET() {
           }
         }
         
-        let art = String(row['ARTICULO'] || '').trim();
+        let art = String(row['ARTICULO'] || '').trim().replace(/\s+/g, ' ');
         if (!art || art === 'nan' || !isNaN(art)) return null;
         
         // Filter out uncategorized items (General / Otros)
@@ -72,6 +72,10 @@ export async function GET() {
                  .replace(/\sLts\b|\sLt\b/gi, ' L')
                  .replace(/\bPvc\b/gi, ' PVC')
                  .replace(/\bMdf\b/gi, ' MDF');
+
+        if (art.toLowerCase().includes('maestro - hercal x 25 kg') || art.toLowerCase().includes('maestro - hercal x 25kg')) {
+          art = 'Cemento de Albañilería';
+        }
                  
         let subcat = String(row['SUBCATEGORIA_WEB'] || '').trim();
         if (subcat.toLowerCase() === 'herreria' || subcat.toLowerCase() === 'herrería') {

@@ -362,7 +362,7 @@ export default function Home() {
             <div>
               <Link href="/planilla"
                 className="btn" style={{ backgroundColor: 'var(--primary)', color: 'white', display: 'inline-flex', alignItems: 'center', gap: '8px', borderRadius: '50px', padding: '12px 28px', fontSize: '0.95rem' }}>
-                📄 Consultar y Enviar Planilla
+                Consultar a un asesor
               </Link>
             </div>
           </div>
