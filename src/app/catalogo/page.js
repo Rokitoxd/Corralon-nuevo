@@ -1365,6 +1365,37 @@ export default function Catalogo() {
         .cat-other-card { transition: transform 0.2s, box-shadow 0.2s; }
         .cat-other-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.12) !important; }
         
+        /* Catalog Featured Card styles */
+        .cat-featured-overlay-content {
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          padding: 24px;
+          background: linear-gradient(0deg, rgba(0,0,0,0.85) 0%, transparent 100%);
+          color: white;
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-end;
+          flex-wrap: wrap;
+          gap: 12px;
+          transition: padding var(--transition-base);
+        }
+        .cat-featured-title {
+          margin: 0;
+          font-size: 1.6rem;
+          font-weight: 800;
+          text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+          transition: font-size var(--transition-base);
+        }
+        .cat-featured-desc {
+          margin: 4px 0 0;
+          opacity: 0.9;
+          font-size: 0.92rem;
+          line-height: 1.4;
+          max-width: 600px;
+        }
+
         /* WhatsApp Reminder Banner Styles */
         .whatsapp-reminder-banner {
           display: flex;
@@ -1424,6 +1455,16 @@ export default function Catalogo() {
           }
           .cat-featured-card > div:first-child {
             height: 180px !important;
+          }
+          .cat-featured-overlay-content {
+            padding: 14px 16px !important;
+            gap: 8px !important;
+          }
+          .cat-featured-title {
+            font-size: 1.2rem !important;
+          }
+          .cat-featured-desc {
+            display: none !important; /* Hide description on mobile to prevent overflow */
           }
           
           /* Mobile WhatsApp Reminder Banner */
@@ -1602,7 +1643,7 @@ export default function Catalogo() {
             const [cat, count] = featItem;
             return (
               <div
-                className="card"
+                className="card cat-featured-card"
                 style={{
                   cursor: 'pointer',
                   padding: 0,
@@ -1638,20 +1679,12 @@ export default function Catalogo() {
                   }}>
                     ⭐ Especialidad de la Casa
                   </div>
-                  <div style={{
-                    position: 'absolute', bottom: 0, left: 0, right: 0,
-                    padding: '24px',
-                    background: 'linear-gradient(0deg, rgba(0,0,0,0.85) 0%, transparent 100%)',
-                    color: 'white',
-                    display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end',
-                    flexWrap: 'wrap',
-                    gap: '12px'
-                  }}>
+                  <div className="cat-featured-overlay-content">
                     <div style={{ flex: 1, minWidth: '220px' }}>
-                      <h4 style={{ margin: 0, fontSize: '1.6rem', fontWeight: 800, textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>
+                      <h4 className="cat-featured-title">
                         {cat}
                       </h4>
-                      <p style={{ margin: '4px 0 0', opacity: 0.9, fontSize: '0.92rem', lineHeight: 1.4, maxWidth: '600px' }}>
+                      <p className="cat-featured-desc">
                         Nuestra prioridad número uno. Cemento, cal, áridos, hierros, ladrillos y todo lo necesario para cimientos, estructura y obra gruesa.
                       </p>
                     </div>
