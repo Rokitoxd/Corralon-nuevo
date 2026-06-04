@@ -1754,17 +1754,6 @@ export default function Catalogo() {
               alt="Marcas Líderes"
               style={{ width: '100%', height: 'auto', display: 'block' }}
             />
-            <div style={{
-              position: 'absolute', bottom: 0, left: 0, right: 0,
-              padding: '32px 24px',
-              background: 'linear-gradient(0deg, rgba(127,0,0,0.9) 0%, transparent 100%)',
-              color: 'white',
-            }}>
-              <h3 style={{ fontSize: '1.5rem', marginBottom: '6px', fontWeight: 700 }}>
-                🏠 Todo para tu Obra en un Solo Lugar
-              </h3>
-              <p style={{ opacity: 0.9 }}>Holcim · Amanco · Ferrum · Tersuave · Weber — Orgullosamente afiliados a Disensa</p>
-            </div>
           </div>
         </section>
       ) : (
