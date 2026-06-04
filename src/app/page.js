@@ -444,16 +444,59 @@ export default function Home() {
           .featured-cat-overlay { position: absolute; inset: 0; background: linear-gradient(100deg, rgba(140,10,6,0.88) 0%, rgba(180,22,14,0.65) 40%, rgba(0,0,0,0.25) 100%); }
           .featured-cat-content { position: absolute; inset: 0; display: flex; align-items: center; padding: 40px 48px; gap: 24px; }
           .featured-cat-desc { color: rgba(255,255,255,0.85); font-size: 1rem; max-width: 520px; margin: 0 0 20px; line-height: 1.6; }
+          
+          .featured-cat-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 50px;
+            padding: 5px 16px;
+            margin-bottom: 12px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: #fff;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+          }
+          .featured-cat-title {
+            font-size: clamp(1.4rem, 3vw, 2.4rem);
+            font-weight: 900;
+            color: #fff;
+            margin: 0 0 8px;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.4);
+            line-height: 1.2;
+          }
+          .featured-cat-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #ffffff;
+            color: #c0160e;
+            padding: 10px 24px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: clamp(0.82rem, 2vw, 0.95rem);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+            transition: transform 0.2s, box-shadow 0.2s;
+          }
+          
           @media (max-width: 768px) {
             .featured-cat-pills { display: none; }
             .featured-cat-img { height: 220px; }
             .featured-cat-overlay { background: linear-gradient(180deg, rgba(0,0,0,0.15) 0%, rgba(140,10,6,0.92) 60%) !important; }
             .featured-cat-content { padding: 20px; align-items: flex-end; }
-            .featured-cat-desc { font-size: 0.88rem; margin: 0 0 14px; }
+            .featured-cat-desc { display: none !important; }
+            .featured-cat-title { font-size: 1.2rem !important; margin-bottom: 8px !important; }
+            .featured-cat-badge { padding: 4px 12px !important; font-size: 0.65rem !important; margin-bottom: 8px !important; }
+            .featured-cat-btn { padding: 8px 18px !important; font-size: 0.8rem !important; }
           }
           @media (max-width: 480px) {
-            .featured-cat-img { height: 200px; }
-            .featured-cat-content { padding: 16px; }
+            .featured-cat-img { height: 180px; }
+            .featured-cat-content { padding: 14px 16px; }
+            .featured-cat-title { font-size: 1.1rem !important; }
           }
         `}</style>
         <Link href="/catalogo" style={{ textDecoration: 'none', display: 'block', marginBottom: '20px' }}>
@@ -467,7 +510,7 @@ export default function Home() {
             border: '3px solid #c0160e',
           }}
           onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 16px 50px rgba(192,22,14,0.30)'; }}
-          onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 8px 40px rgba(192,22,14,0.22)'; }}
+          onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 8px 40px rgba(192, 22, 14, 0.22)'; }}
           >
             {/* Background image */}
             <img
@@ -481,31 +524,16 @@ export default function Home() {
             <div className="featured-cat-content">
               <div style={{ flex: 1 }}>
                 {/* Badge */}
-                <div style={{
-                  display: 'inline-flex', alignItems: 'center', gap: '6px',
-                  background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)',
-                  border: '1px solid rgba(255,255,255,0.3)',
-                  borderRadius: '50px', padding: '5px 16px', marginBottom: '12px',
-                  fontSize: '0.72rem', fontWeight: 700, color: '#fff', textTransform: 'uppercase', letterSpacing: '1px',
-                }}>
+                <div className="featured-cat-badge">
                   ⭐ Nuestra Especialidad
                 </div>
-                <h3 style={{
-                  fontSize: 'clamp(1.4rem, 3vw, 2.4rem)', fontWeight: 900, color: '#fff',
-                  margin: '0 0 8px', textShadow: '0 2px 8px rgba(0,0,0,0.4)', lineHeight: 1.2,
-                }}>
+                <h3 className="featured-cat-title">
                   🧱 Materiales de Construcción
                 </h3>
                 <p className="featured-cat-desc">
                   Cemento, cal, áridos, hierros, chapas y todo para cimientos y estructura. La prioridad de tu obra con los mejores precios del mercado.
                 </p>
-                <div style={{
-                  display: 'inline-flex', alignItems: 'center', gap: '8px',
-                  background: '#ffffff', color: '#c0160e',
-                  padding: '10px 24px', borderRadius: '50px',
-                  fontWeight: 700, fontSize: 'clamp(0.82rem, 2vw, 0.95rem)',
-                  boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
-                }}>
+                <div className="featured-cat-btn">
                   Ver Catálogo Completo →
                 </div>
               </div>
