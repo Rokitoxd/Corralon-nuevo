@@ -68,7 +68,7 @@
   /* Layout */
   --header-height: 72px;
   --info-strip-height: 40px;
-  --brand-strip-height: 60px;
+  --brand-strip-height: 72px;
   --container-max: 1280px;
   --container-padding: 24px;
 }
@@ -442,13 +442,22 @@ input, select, textarea {
    BRAND MARQUEE STRIP
    ============================================================ */
 .brand-strip {
-  background: #ffffff;
-  border-bottom: 2px solid #e8e8e8;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
   height: var(--brand-strip-height);
   display: flex;
   align-items: center;
   overflow: hidden;
   position: relative;
+  z-index: 5;
+  transition: background var(--transition-base), border-color var(--transition-base);
+  
+  /* Make the strip completely non-selectable and non-interactive */
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  pointer-events: none;
 }
 
 .brand-strip::before,
@@ -460,16 +469,17 @@ input, select, textarea {
   width: 80px;
   z-index: 2;
   pointer-events: none;
+  transition: background var(--transition-base);
 }
 
 .brand-strip::before {
   left: 0;
-  background: linear-gradient(to right, #ffffff, transparent);
+  background: linear-gradient(to right, var(--brand-strip-fade-bg, var(--bg)), transparent);
 }
 
 .brand-strip::after {
   right: 0;
-  background: linear-gradient(to left, #ffffff, transparent);
+  background: linear-gradient(to left, var(--brand-strip-fade-bg, var(--bg)), transparent);
 }
 
 .brand-marquee {
@@ -479,10 +489,6 @@ input, select, textarea {
   animation: marquee-scroll 30s linear infinite;
   white-space: nowrap;
   will-change: transform;
-}
-
-.brand-marquee:hover {
-  animation-play-state: paused;
 }
 
 @keyframes marquee-scroll {
@@ -495,39 +501,27 @@ input, select, textarea {
   align-items: center;
   justify-content: center;
   padding: 0 36px;
+  min-width: 120px;
   flex-shrink: 0;
-  border-right: 1px solid #eeeeee;
+  border-right: 1px solid var(--border);
   height: 100%;
-  transition: background var(--transition-fast);
-}
-
-.brand-marquee-item:hover {
-  background: #fafafa;
 }
 
 .brand-marquee-item img {
-  height: 28px;
+  max-height: 28px;
+  max-width: 90px;
   width: auto;
+  height: auto;
   object-fit: contain;
-  filter: grayscale(100%);
-  opacity: 0.55;
-  transition: filter var(--transition-base), opacity var(--transition-base);
-}
-
-.brand-marquee-item:hover img {
-  filter: grayscale(0%);
-  opacity: 1;
+  filter: grayscale(0%); /* Colored by default */
+  opacity: 0.7; /* Soft opacity to blend beautifully with background */
 }
 
 .brand-marquee-item.disensa img {
-  height: 32px;
-  filter: grayscale(30%);
-  opacity: 0.75;
-}
-
-.brand-marquee-item.disensa:hover img {
+  max-height: 48px;
+  max-width: 130px;
   filter: grayscale(0%);
-  opacity: 1;
+  opacity: 0.85;
 }
 
 .brand-marquee-label {
@@ -536,13 +530,42 @@ input, select, textarea {
   gap: 6px;
   padding: 0 36px;
   flex-shrink: 0;
-  border-right: 1px solid #eeeeee;
+  border-right: 1px solid var(--border);
   height: 100%;
   font-size: 0.72rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 1.5px;
   color: var(--text-muted);
+}
+
+/* Homepage overrides when .hero-section is present */
+body:has(.hero-section) {
+  --brand-strip-fade-bg: rgba(127, 0, 0, 0.82);
+}
+
+body:has(.hero-section) .brand-strip {
+  background: transparent;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+body:has(.hero-section) .brand-marquee-item {
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+body:has(.hero-section) .brand-marquee-item img {
+  filter: brightness(0) invert(1);
+  opacity: 0.65;
+}
+
+body:has(.hero-section) .brand-marquee-item.disensa img {
+  filter: brightness(0) invert(1);
+  opacity: 0.75;
+}
+
+body:has(.hero-section) .brand-marquee-label {
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.6);
 }
 
 
@@ -1233,6 +1256,7 @@ input, select, textarea {
   :root {
     --container-padding: 16px;
     --header-height: 64px;
+    --brand-strip-height: 44px;
   }
 
   .hamburger {

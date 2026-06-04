@@ -57,7 +57,7 @@ export async function GET() {
         if (!art || art === 'nan' || !isNaN(art)) return null;
         
         // Filter out uncategorized items (General / Otros)
-        const cat = row['CATEGORIA_WEB'] ? String(row['CATEGORIA_WEB']).trim() : '';
+        let cat = row['CATEGORIA_WEB'] ? String(row['CATEGORIA_WEB']).trim() : '';
         if (!cat || cat === '📦 General / Otros' || cat.toLowerCase().includes('general') || cat.toLowerCase().includes('otros')) {
           return null;
         }
@@ -76,6 +76,9 @@ export async function GET() {
         let subcat = String(row['SUBCATEGORIA_WEB'] || '').trim();
         if (subcat.toLowerCase() === 'herreria' || subcat.toLowerCase() === 'herrería') {
           subcat = 'Angulos y Planchuelas';
+        }
+        if (subcat.toLowerCase() === 'viguetas') {
+          cat = '⚙️ Hierros y Chapas';
         }
         if (!subcat) subcat = 'Otros';
 

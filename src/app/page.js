@@ -80,10 +80,18 @@ export default function Home() {
           background-image: linear-gradient(rgba(127, 0, 0, 0.82), rgba(26, 26, 46, 0.95)), url("/storefront_larural.png");
           background-size: cover;
           background-position: center;
-          padding: clamp(60px, 12vw, 120px) 20px;
+          padding-top: calc(clamp(60px, 12vw, 120px) + var(--brand-strip-height));
+          padding-bottom: clamp(60px, 12vw, 120px);
+          padding-left: 20px;
+          padding-right: 20px;
           text-align: center;
           color: white;
-          margin-top: -30px;
+          margin-top: calc(-1 * var(--brand-strip-height) - 32px);
+        }
+        @media (max-width: 768px) {
+          .hero-section {
+            margin-top: calc(-1 * var(--brand-strip-height) - 20px);
+          }
         }
         .hero-buttons {
           display: flex;
@@ -310,15 +318,20 @@ export default function Home() {
         .asesor-card { display: flex; gap: 0; padding: 0; overflow: hidden; }
         .asesor-text { flex: 1 1 350px; padding: 40px; display: flex; flex-direction: column; justify-content: center; }
         .asesor-img { flex: 1 1 300px; min-height: 280px; position: relative; background-color: #eee; }
+        
+        @media (max-width: 992px) {
+          .asesor-card { flex-direction: column-reverse; } /* Stacks vertically with image on top */
+          .asesor-text { padding: 32px; flex: none; }
+          .asesor-img { flex: none; min-height: unset; max-height: unset; height: 200px; }
+        }
         @media (max-width: 768px) {
-          .asesor-card { flex-direction: column-reverse; }
-          .asesor-text { padding: 24px; flex: none; }
-          .asesor-img { flex: none; min-height: 200px; max-height: 220px; }
-          .asesor-card h3 { font-size: 1.2rem !important; }
+          .asesor-text { padding: 24px; }
+          .asesor-img { height: 130px; }
+          .asesor-card h3 { font-size: 1.25rem !important; }
         }
         @media (max-width: 480px) {
           .asesor-text { padding: 20px; }
-          .asesor-img { max-height: 180px; }
+          .asesor-img { height: 100px; }
         }
       `}</style>
       <section style={{ marginBottom: '60px' }}>
@@ -347,10 +360,10 @@ export default function Home() {
               </li>
             </ul>
             <div>
-              <a href={`https://wa.me/${tel_whatsapp}`} target="_blank" rel="noopener noreferrer"
-                className="btn" style={{ backgroundColor: '#25D366', display: 'inline-flex', alignItems: 'center', gap: '8px', borderRadius: '50px', padding: '12px 28px', fontSize: '0.95rem' }}>
-                💬 Consultar con un Asesor
-              </a>
+              <Link href="/planilla"
+                className="btn" style={{ backgroundColor: 'var(--primary)', color: 'white', display: 'inline-flex', alignItems: 'center', gap: '8px', borderRadius: '50px', padding: '12px 28px', fontSize: '0.95rem' }}>
+                📄 Consultar y Enviar Planilla
+              </Link>
             </div>
           </div>
           

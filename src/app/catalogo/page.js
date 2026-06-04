@@ -35,16 +35,40 @@ export default function Catalogo() {
   const [chapaQty, setChapaQty] = useState(1);
 
   const [chapaLisaCalibre, setChapaLisaCalibre] = useState("");
-  const [chapaLisaMedida, setChapaLisaMedida] = useState("");
+  const [chapaLisaAncho, setChapaLisaAncho] = useState("");
+  const [chapaLisaLargo, setChapaLisaLargo] = useState("");
   const [chapaLisaQty, setChapaLisaQty] = useState(1);
 
+  const [viguetaTipo, setViguetaTipo] = useState("");
+  const [viguetaMedida, setViguetaMedida] = useState("");
+  const [viguetaQty, setViguetaQty] = useState(1);
+
+  const [ladrilloCompraPor, setLadrilloCompraPor] = useState("unidad");
+  const [ladrilloTipo, setLadrilloTipo] = useState("");
+  const [ladrilloMedida, setLadrilloMedida] = useState("");
+  const [ladrilloQty, setLadrilloQty] = useState(1);
+
   useEffect(() => {
-    if (chapaLisaCalibre === "24") {
-      setChapaLisaMedida("1.22 x 2.44");
-    } else {
-      setChapaLisaMedida("");
-    }
+    setViguetaMedida("");
+  }, [viguetaTipo]);
+
+  useEffect(() => {
+    setLadrilloTipo("");
+    setLadrilloMedida("");
+  }, [ladrilloCompraPor]);
+
+  useEffect(() => {
+    setLadrilloMedida("");
+  }, [ladrilloTipo]);
+
+  useEffect(() => {
+    setChapaLisaAncho("");
+    setChapaLisaLargo("");
   }, [chapaLisaCalibre]);
+
+  useEffect(() => {
+    setChapaLisaLargo("");
+  }, [chapaLisaAncho]);
 
   useEffect(() => {
     if (aridoTipo === "Ripio Bruto Fino") {
@@ -124,33 +148,46 @@ export default function Catalogo() {
 
   // ── Chapas Lisas (Negras) Widget Logic ──
   const matchedChapaLisa = useMemo(() => {
-    if (!chapaLisaCalibre || !chapaLisaMedida) return null;
+    if (!chapaLisaCalibre || !chapaLisaAncho || !chapaLisaLargo) return null;
     return articulos.find(a => {
       const nameLower = a.ARTICULO.toLowerCase();
+      
+      if (chapaLisaCalibre === "25" || chapaLisaCalibre === "27") {
+        if (!nameLower.includes("chapa") || !nameLower.includes("lisa")) return false;
+        if (!nameLower.includes(`cal ${chapaLisaCalibre}`)) return false;
+        if (chapaLisaAncho === "0.61" && (nameLower.includes("061") || nameLower.includes("0.61"))) return true;
+        if (chapaLisaAncho === "1.22" && nameLower.includes("1.22")) return true;
+        return false;
+      }
+      
       if (!nameLower.includes("chapa") || !nameLower.includes("dd")) return false;
       
       const calibreTerm = `dd ${chapaLisaCalibre}`;
       if (!nameLower.includes(calibreTerm)) return false;
       
-      if (chapaLisaMedida === "1 x 2") {
+      const widthVal = parseFloat(chapaLisaAncho);
+      const lengthVal = parseFloat(chapaLisaLargo);
+      
+      if (widthVal === 1.0 && lengthVal === 2.0) {
         return nameLower.includes("1 x 2") || nameLower.includes("1x2");
-      } else if (chapaLisaMedida === "1.22 x 2.44") {
+      } else if (widthVal === 1.22 && lengthVal === 2.44) {
         return nameLower.includes("1.22") || nameLower.includes("1,22");
       }
       return false;
     });
-  }, [chapaLisaCalibre, chapaLisaMedida, articulos]);
+  }, [chapaLisaCalibre, chapaLisaAncho, chapaLisaLargo, articulos]);
 
   const chapaLisaProductName = useMemo(() => {
-    if (!chapaLisaCalibre || !chapaLisaMedida) return "";
-    return `Chapa Lisa (Negra) Calibre ${chapaLisaCalibre} de ${chapaLisaMedida} Mts`;
-  }, [chapaLisaCalibre, chapaLisaMedida]);
+    if (!chapaLisaCalibre || !chapaLisaAncho || !chapaLisaLargo) return "";
+    const typeLabel = (chapaLisaCalibre === "25" || chapaLisaCalibre === "27") ? "Lisa" : "Lisa (Negra) DD";
+    return `Chapa ${typeLabel} Calibre ${chapaLisaCalibre} de ${chapaLisaAncho} x ${chapaLisaLargo} Mts`;
+  }, [chapaLisaCalibre, chapaLisaAncho, chapaLisaLargo]);
 
-  const chapaLisaReady = chapaLisaCalibre !== "" && chapaLisaMedida !== "";
+  const chapaLisaReady = chapaLisaCalibre !== "" && chapaLisaAncho !== "" && chapaLisaLargo !== "";
 
   const handleAddChapaLisa = () => {
     if (!chapaLisaReady) {
-      showToast(`⚠️ Seleccioná calibre y medida.`);
+      showToast(`⚠️ Seleccioná calibre, ancho y metros.`);
       return;
     }
     const finalItem = matchedChapaLisa
@@ -160,8 +197,109 @@ export default function Catalogo() {
     addToCart(finalItem, chapaLisaQty);
     showToast(`✓ Agregado: ${chapaLisaQty} × ${chapaLisaProductName}`);
     setChapaLisaCalibre("");
-    setChapaLisaMedida("");
+    setChapaLisaAncho("");
+    setChapaLisaLargo("");
     setChapaLisaQty(1);
+  };
+
+  // ── Viguetas Widget Logic ──
+  const matchedViguetaItem = useMemo(() => {
+    if (!viguetaTipo || !viguetaMedida) return null;
+    return articulos.find(a => {
+      const nameLower = a.ARTICULO.toLowerCase();
+      if (viguetaTipo === "Vigueta") {
+        if (!nameLower.includes("vigueta")) return false;
+        if (viguetaMedida === "1.00") {
+          return nameLower.includes(" 1 m") || nameLower.includes(" 1.00");
+        }
+        return nameLower.includes(`de ${viguetaMedida}`);
+      } else if (viguetaTipo === "Bovedilla") {
+        return nameLower.includes("bovedilla") && nameLower.includes(viguetaMedida.toLowerCase());
+      }
+      return false;
+    });
+  }, [viguetaTipo, viguetaMedida, articulos]);
+
+  const viguetaReady = viguetaTipo !== "" && viguetaMedida !== "";
+
+  const handleAddVigueta = () => {
+    if (!viguetaReady) {
+      showToast(`⚠️ Seleccioná tipo de material y medida.`);
+      return;
+    }
+    if (matchedViguetaItem) {
+      addToCart(matchedViguetaItem, viguetaQty);
+      showToast(`✓ Agregado: ${viguetaQty} × ${matchedViguetaItem.ARTICULO}`);
+    } else {
+      const fallbackName = viguetaTipo === "Vigueta"
+        ? `Vigueta De ${viguetaMedida} Mts`
+        : `Bovedilla Telgopor ${viguetaMedida}`;
+      const fallbackItem = { ARTICULO: fallbackName, CATEGORIA_WEB: "⚙️ Hierros y Chapas" };
+      addToCart(fallbackItem, viguetaQty);
+      showToast(`✓ Agregado: ${viguetaQty} × ${fallbackName}`);
+    }
+    setViguetaTipo("");
+    setViguetaMedida("");
+    setViguetaQty(1);
+  };
+
+  // ── Ladrillos Widget Logic ──
+  const matchedLadrilloItem = useMemo(() => {
+    if (!ladrilloTipo) return null;
+    if (ladrilloTipo === "Hueco" && !ladrilloMedida) return null;
+
+    return articulos.find(a => {
+      const nameLower = a.ARTICULO.toLowerCase();
+      if (!nameLower.includes("ladrillo")) return false;
+      
+      if (ladrilloTipo === "Común") {
+        if (!nameLower.includes("comun")) return false;
+        if (ladrilloCompraPor === "unidad") return nameLower.includes("unidad");
+        if (ladrilloCompraPor === "millar") return nameLower.includes("1000");
+      } else if (ladrilloTipo === "Hueco") {
+        if (!nameLower.includes("hueco")) return false;
+        const cleanName = nameLower.replace("ladrillo hueco", "").trim();
+        return cleanName === ladrilloMedida.toLowerCase();
+      } else if (ladrilloTipo === "Semi Vista") {
+        if (!nameLower.includes("semi vista")) return false;
+        if (ladrilloCompraPor === "unidad") return nameLower.includes("unidad");
+        if (ladrilloCompraPor === "millar") return nameLower.includes("1000");
+      }
+      return false;
+    });
+  }, [ladrilloCompraPor, ladrilloTipo, ladrilloMedida, articulos]);
+
+  const ladrilloReady = ladrilloTipo !== "" && (ladrilloTipo !== "Hueco" || ladrilloMedida !== "");
+
+  const handleAddLadrillo = () => {
+    if (!ladrilloReady) {
+      showToast(`⚠️ Seleccioná tipo de ladrillo y presentación.`);
+      return;
+    }
+    
+    if (ladrilloCompraPor === "millar" && ladrilloTipo === "Hueco") {
+      const finalItemName = `Ladrillo Hueco ${ladrilloMedida} (X 1000)`;
+      const finalItem = matchedLadrilloItem
+        ? { ...matchedLadrilloItem, ARTICULO: finalItemName }
+        : { ARTICULO: finalItemName, CATEGORIA_WEB: "🧱 Materiales de Construcción" };
+        
+      addToCart(finalItem, ladrilloQty);
+      showToast(`✓ Agregado: ${ladrilloQty} × ${finalItemName}`);
+    } else {
+      if (matchedLadrilloItem) {
+        addToCart(matchedLadrilloItem, ladrilloQty);
+        showToast(`✓ Agregado: ${ladrilloQty} × ${matchedLadrilloItem.ARTICULO}`);
+      } else {
+        const displayDetail = ladrilloTipo === "Hueco" ? ladrilloMedida : (ladrilloCompraPor === "unidad" ? "x Unidad" : "x Millar");
+        const fallbackName = `Ladrillo ${ladrilloTipo} (${displayDetail})`;
+        const fallbackItem = { ARTICULO: fallbackName, CATEGORIA_WEB: "🧱 Materiales de Construcción" };
+        addToCart(fallbackItem, ladrilloQty);
+        showToast(`✓ Agregado: ${ladrilloQty} × ${fallbackName}`);
+      }
+    }
+    setLadrilloTipo("");
+    setLadrilloMedida("");
+    setLadrilloQty(1);
   };
 
   useEffect(() => {
@@ -603,9 +741,399 @@ export default function Catalogo() {
     </div>
   );
 
-  const renderChapasLisasWidget = () => (
+  const renderChapasLisasWidget = () => {
+    const largoOptions = [];
+    for (let m = 0.5; m <= 15; m += 0.5) {
+      largoOptions.push(m % 1 === 0 ? `${m.toFixed(1)}` : `${m.toFixed(2)}`);
+    }
+    if (chapaLisaAncho === "1.22" && !largoOptions.includes("2.44")) {
+      largoOptions.push("2.44");
+    }
+    largoOptions.sort((a, b) => parseFloat(a) - parseFloat(b));
+
+    return (
+      <div className="card animate-fade-in aridos-widget" style={{
+        borderLeft: '4px solid #475569',
+        marginBottom: '32px',
+        background: 'var(--surface-color)',
+        boxShadow: 'var(--shadow-md)',
+        animation: 'fadeInUp 0.4s ease-out'
+      }}>
+        {/* Image container */}
+        <div className="aridos-widget-img">
+          <img
+            src="/cat_hierros_chapas.png"
+            alt="Chapas Lisas Doble Decapadas"
+            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+          />
+          <div style={{
+            position: 'absolute',
+            top: '16px',
+            left: '16px',
+            background: '#475569',
+            color: 'white',
+            padding: '4px 12px',
+            borderRadius: '50px',
+            fontSize: '0.8rem',
+            fontWeight: 700,
+            boxShadow: 'var(--shadow-sm)'
+          }}>
+            Chapa Lisa DD / Lisa ⚙️
+          </div>
+        </div>
+
+        {/* Control panel */}
+        <div className="aridos-widget-controls">
+          <h3 style={{ fontSize: '1.4rem', color: 'var(--secondary)', marginBottom: '8px', marginTop: 0 }}>
+            Selector de Chapas Lisas 🏗️
+          </h3>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '24px', lineHeight: 1.5 }}>
+            Elegí el calibre, ancho de la chapa y el largo en metros lineales que necesitás.
+          </p>
+
+          <div style={{ display: 'flex', gap: '12px', marginBottom: '20px', flexWrap: 'wrap' }}>
+            {/* Calibre */}
+            <div style={{ flex: 1, minWidth: '120px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: 600, fontSize: '0.85rem', color: 'var(--secondary)' }}>
+                Calibre
+              </label>
+              <select
+                value={chapaLisaCalibre}
+                onChange={(e) => setChapaLisaCalibre(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  borderRadius: '8px',
+                  border: '1px solid var(--border-color)',
+                  backgroundColor: 'white',
+                  fontWeight: 500,
+                  color: 'var(--text-main)',
+                  cursor: 'pointer',
+                  outline: 'none',
+                  boxShadow: 'var(--shadow-sm)'
+                }}
+              >
+                <option value="" disabled>— Calibre —</option>
+                <option value="16">Calibre 16 (1.6 mm)</option>
+                <option value="18">Calibre 18 (1.2 mm)</option>
+                <option value="20">Calibre 20 (0.9 mm)</option>
+                <option value="24">Calibre 24 (0.56 mm)</option>
+                <option value="25">Calibre 25 (0.50 mm)</option>
+                <option value="27">Calibre 27 (0.40 mm)</option>
+              </select>
+            </div>
+
+            {/* Ancho */}
+            <div style={{ flex: 1, minWidth: '120px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: 600, fontSize: '0.85rem', color: 'var(--secondary)' }}>
+                Ancho (mts)
+              </label>
+              <select
+                value={chapaLisaAncho}
+                onChange={(e) => setChapaLisaAncho(e.target.value)}
+                disabled={!chapaLisaCalibre}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  borderRadius: '8px',
+                  border: '1px solid var(--border-color)',
+                  backgroundColor: 'white',
+                  fontWeight: 500,
+                  color: 'var(--text-main)',
+                  cursor: 'pointer',
+                  outline: 'none',
+                  boxShadow: 'var(--shadow-sm)',
+                  opacity: chapaLisaCalibre ? 1 : 0.6
+                }}
+              >
+                <option value="" disabled>— Ancho —</option>
+                {(chapaLisaCalibre === "16" || chapaLisaCalibre === "18" || chapaLisaCalibre === "20") && (
+                  <>
+                    <option value="1.00">1.00 mt de ancho</option>
+                    <option value="1.22">1.22 mt de ancho</option>
+                  </>
+                )}
+                {chapaLisaCalibre === "24" && (
+                  <option value="1.22">1.22 mt de ancho</option>
+                )}
+                {chapaLisaCalibre === "25" && (
+                  <>
+                    <option value="0.61">0.61 mt de ancho</option>
+                    <option value="1.22">1.22 mt de ancho</option>
+                  </>
+                )}
+                {chapaLisaCalibre === "27" && (
+                  <option value="1.22">1.22 mt de ancho</option>
+                )}
+              </select>
+            </div>
+
+            {/* Largo (Metros Lineales) */}
+            <div style={{ flex: 1, minWidth: '120px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: 600, fontSize: '0.85rem', color: 'var(--secondary)' }}>
+                Largo (mts)
+              </label>
+              <select
+                value={chapaLisaLargo}
+                onChange={(e) => setChapaLisaLargo(e.target.value)}
+                disabled={!chapaLisaAncho}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  borderRadius: '8px',
+                  border: '1px solid var(--border-color)',
+                  backgroundColor: 'white',
+                  fontWeight: 500,
+                  color: 'var(--text-main)',
+                  cursor: 'pointer',
+                  outline: 'none',
+                  boxShadow: 'var(--shadow-sm)',
+                  opacity: chapaLisaAncho ? 1 : 0.6
+                }}
+              >
+                <option value="" disabled>— Largo —</option>
+                {largoOptions.map(l => (
+                  <option key={l} value={l}>{l} mts</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Product display and CTA */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginTop: '8px',
+            borderTop: '1px solid var(--border-color)',
+            paddingTop: '20px',
+            flexWrap: 'wrap',
+            gap: '16px'
+          }}>
+            <div>
+              <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block' }}>
+                Producto Seleccionado:
+              </span>
+              <span style={{ fontWeight: 600, color: chapaLisaReady ? 'var(--secondary)' : 'var(--text-muted)', fontSize: '0.95rem' }}>
+                {chapaLisaReady ? chapaLisaProductName : "Seleccioná calibre, ancho y largo"}
+              </span>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <input
+                type="number"
+                min="1"
+                value={chapaLisaQty}
+                onChange={(e) => setChapaLisaQty(Math.max(1, parseInt(e.target.value) || 1))}
+                style={{
+                  width: '70px',
+                  padding: '12px',
+                  textAlign: 'center',
+                  borderRadius: '8px',
+                  border: '1px solid var(--border-color)',
+                  fontWeight: 600,
+                  boxShadow: 'var(--shadow-sm)'
+                }}
+              />
+              <button
+                className="btn btn-primary"
+                onClick={handleAddChapaLisa}
+                disabled={!chapaLisaReady}
+                style={{
+                  padding: '12px 24px',
+                  borderRadius: '8px',
+                  fontWeight: 700,
+                  backgroundColor: '#475569',
+                  border: 'none',
+                  opacity: chapaLisaReady ? 1 : 0.6,
+                  cursor: chapaLisaReady ? 'pointer' : 'not-allowed',
+                  boxShadow: chapaLisaReady ? '0 4px 12px rgba(71,85,105,0.2)' : 'none',
+                }}
+              >
+                Agregar
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderViguetasWidget = () => {
+    const viguetaLengths = [
+      "1.00", "1.20", "1.40", "1.60", "1.80", "2.00", "2.20", "2.40", "2.60", "2.80",
+      "3.00", "3.20", "3.40", "3.60", "3.80", "4.00", "4.20", "4.40", "4.60", "4.80",
+      "5.00", "5.20", "5.40", "5.60", "5.80", "6.00", "6.20", "6.40", "6.60", "6.80",
+      "7.00", "7.20"
+    ];
+
+    return (
+      <div className="card animate-fade-in aridos-widget" style={{
+        borderLeft: '4px solid #b71c1c',
+        marginBottom: '32px',
+        background: 'var(--surface-color)',
+        boxShadow: 'var(--shadow-md)',
+        animation: 'fadeInUp 0.4s ease-out'
+      }}>
+        {/* Image container */}
+        <div className="aridos-widget-img">
+          <img
+            src="/cat_obra_gruesa.png"
+            alt="Losa y Viguetas"
+            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+          />
+          <div style={{
+            position: 'absolute',
+            top: '16px',
+            left: '16px',
+            background: '#b71c1c',
+            color: 'white',
+            padding: '4px 12px',
+            borderRadius: '50px',
+            fontSize: '0.8rem',
+            fontWeight: 700,
+            boxShadow: 'var(--shadow-sm)'
+          }}>
+            Viguetas Tensolite 🧱
+          </div>
+        </div>
+
+        {/* Control panel */}
+        <div className="aridos-widget-controls">
+          <h3 style={{ fontSize: '1.4rem', color: 'var(--secondary)', marginBottom: '8px', marginTop: 0 }}>
+            Selector de Viguetas y Bovedillas 🏗️
+          </h3>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '24px', lineHeight: 1.5 }}>
+            Elegí el tipo de material (Vigueta o Bovedilla) y la medida requerida. Agregá al carrito y el tablero se reinicia para pedir otra medida.
+          </p>
+
+          <div style={{ display: 'flex', gap: '16px', marginBottom: '20px', flexWrap: 'wrap' }}>
+            {/* Tipo de Material */}
+            <div style={{ flex: 1, minWidth: '180px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: 600, fontSize: '0.85rem', color: 'var(--secondary)' }}>
+                Tipo de Material
+              </label>
+              <select
+                value={viguetaTipo}
+                onChange={(e) => setViguetaTipo(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  borderRadius: '8px',
+                  border: '1px solid var(--border-color)',
+                  backgroundColor: 'white',
+                  fontWeight: 500,
+                  color: 'var(--text-main)',
+                  cursor: 'pointer',
+                  outline: 'none',
+                  boxShadow: 'var(--shadow-sm)'
+                }}
+              >
+                <option value="" disabled>— Seleccionar tipo —</option>
+                <option value="Vigueta">Vigueta de Hormigón</option>
+                <option value="Bovedilla">Bovedilla de Telgopor</option>
+              </select>
+            </div>
+
+            {/* Medida / Modelo */}
+            <div style={{ flex: 1, minWidth: '140px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: 600, fontSize: '0.85rem', color: 'var(--secondary)' }}>
+                Medida / Modelo
+              </label>
+              <select
+                value={viguetaMedida}
+                onChange={(e) => setViguetaMedida(e.target.value)}
+                disabled={!viguetaTipo}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  borderRadius: '8px',
+                  border: '1px solid var(--border-color)',
+                  backgroundColor: 'white',
+                  fontWeight: 500,
+                  color: 'var(--text-main)',
+                  cursor: 'pointer',
+                  outline: 'none',
+                  boxShadow: 'var(--shadow-sm)',
+                  opacity: viguetaTipo ? 1 : 0.6
+                }}
+              >
+                <option value="" disabled>— Seleccionar medida —</option>
+                {viguetaTipo === "Vigueta" && viguetaLengths.map(m => (
+                  <option key={m} value={m}>{parseFloat(m).toFixed(2)} mts</option>
+                ))}
+                {viguetaTipo === "Bovedilla" && (
+                  <>
+                    <option value="10 x T1">10 x T1 (10cm alto)</option>
+                    <option value="12 x T2">12 x T2 (12cm alto)</option>
+                    <option value="16 x T3">16 x T3 (16cm alto)</option>
+                  </>
+                )}
+              </select>
+            </div>
+          </div>
+
+          {/* Product display and CTA */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginTop: '8px',
+            borderTop: '1px solid var(--border-color)',
+            paddingTop: '20px',
+            flexWrap: 'wrap',
+            gap: '16px'
+          }}>
+            <div>
+              <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block' }}>
+                Producto Seleccionado:
+              </span>
+              <span style={{ fontWeight: 600, color: viguetaReady ? 'var(--secondary)' : 'var(--text-muted)', fontSize: '0.95rem' }}>
+                {viguetaReady ? (matchedViguetaItem ? matchedViguetaItem.ARTICULO : "No disponible") : "Seleccioná tipo y medida"}
+              </span>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <input
+                type="number"
+                min="1"
+                value={viguetaQty}
+                onChange={(e) => setViguetaQty(Math.max(1, parseInt(e.target.value) || 1))}
+                style={{
+                  width: '70px',
+                  padding: '12px',
+                  textAlign: 'center',
+                  borderRadius: '8px',
+                  border: '1px solid var(--border-color)',
+                  fontWeight: 600,
+                  boxShadow: 'var(--shadow-sm)'
+                }}
+              />
+              <button
+                className="btn btn-primary"
+                onClick={handleAddVigueta}
+                disabled={!viguetaReady}
+                style={{
+                  padding: '12px 24px',
+                  borderRadius: '8px',
+                  fontWeight: 700,
+                  opacity: viguetaReady ? 1 : 0.6,
+                  cursor: viguetaReady ? 'pointer' : 'not-allowed',
+                  boxShadow: viguetaReady ? '0 4px 12px rgba(183,28,28,0.2)' : 'none',
+                }}
+              >
+                Agregar
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderLadrillosWidget = () => (
     <div className="card animate-fade-in aridos-widget" style={{
-      borderLeft: '4px solid #475569',
+      borderLeft: '4px solid #f97316',
       marginBottom: '32px',
       background: 'var(--surface-color)',
       boxShadow: 'var(--shadow-md)',
@@ -614,15 +1142,15 @@ export default function Catalogo() {
       {/* Image container */}
       <div className="aridos-widget-img">
         <img
-          src="/cat_hierros_chapas.png"
-          alt="Chapas Lisas Doble Decapadas"
+          src="/cat_obra_gruesa.png"
+          alt="Ladrillos y Bloques"
           style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
         />
         <div style={{
           position: 'absolute',
           top: '16px',
           left: '16px',
-          background: '#475569',
+          background: '#f97316',
           color: 'white',
           padding: '4px 12px',
           borderRadius: '50px',
@@ -630,28 +1158,66 @@ export default function Catalogo() {
           fontWeight: 700,
           boxShadow: 'var(--shadow-sm)'
         }}>
-          Chapa Lisa Negra (DD) ⚙️
+          Ladrillos de Obra 🧱
         </div>
       </div>
 
       {/* Control panel */}
       <div className="aridos-widget-controls">
         <h3 style={{ fontSize: '1.4rem', color: 'var(--secondary)', marginBottom: '8px', marginTop: 0 }}>
-          Selector de Chapas Lisas (Negras) 🏗️
+          Selector de Ladrillos 🏗️
         </h3>
-        <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '24px', lineHeight: 1.5 }}>
-          Elegí el calibre y las dimensiones de la chapa lisa (negra) que necesitás para tu proyecto.
+        <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '20px', lineHeight: 1.5 }}>
+          Elegí la modalidad de compra (por unidad o millar) y luego el tipo de ladrillo que necesitás.
         </p>
 
+        {/* Compra Por Tab Selector */}
+        <div style={{ display: 'flex', borderBottom: '2px solid var(--border-color)', marginBottom: '24px', gap: '8px' }}>
+          <button
+            onClick={() => setLadrilloCompraPor("unidad")}
+            style={{
+              padding: '10px 16px',
+              fontWeight: 600,
+              fontSize: '0.88rem',
+              color: ladrilloCompraPor === "unidad" ? '#f97316' : 'var(--text-muted)',
+              borderBottom: ladrilloCompraPor === "unidad" ? '3px solid #f97316' : '3px solid transparent',
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+              marginBottom: '-2px',
+              background: 'transparent',
+              outline: 'none'
+            }}
+          >
+            🧱 Compra por Unidad
+          </button>
+          <button
+            onClick={() => setLadrilloCompraPor("millar")}
+            style={{
+              padding: '10px 16px',
+              fontWeight: 600,
+              fontSize: '0.88rem',
+              color: ladrilloCompraPor === "millar" ? '#f97316' : 'var(--text-muted)',
+              borderBottom: ladrilloCompraPor === "millar" ? '3px solid #f97316' : '3px solid transparent',
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+              marginBottom: '-2px',
+              background: 'transparent',
+              outline: 'none'
+            }}
+          >
+            📦 Compra por Millar (x1000)
+          </button>
+        </div>
+
         <div style={{ display: 'flex', gap: '16px', marginBottom: '20px', flexWrap: 'wrap' }}>
-          {/* Calibre */}
-          <div style={{ flex: 1, minWidth: '140px' }}>
+          {/* Tipo de Ladrillo */}
+          <div style={{ flex: 1, minWidth: '180px' }}>
             <label style={{ display: 'block', marginBottom: '8px', fontWeight: 600, fontSize: '0.85rem', color: 'var(--secondary)' }}>
-              Calibre
+              Tipo de Ladrillo
             </label>
             <select
-              value={chapaLisaCalibre}
-              onChange={(e) => setChapaLisaCalibre(e.target.value)}
+              value={ladrilloTipo}
+              onChange={(e) => setLadrilloTipo(e.target.value)}
               style={{
                 width: '100%',
                 padding: '12px',
@@ -665,41 +1231,42 @@ export default function Catalogo() {
                 boxShadow: 'var(--shadow-sm)'
               }}
             >
-              <option value="" disabled>— Seleccionar calibre —</option>
-              <option value="16">Calibre 16 (1.6 mm)</option>
-              <option value="18">Calibre 18 (1.2 mm)</option>
-              <option value="20">Calibre 20 (0.9 mm)</option>
-              <option value="24">Calibre 24 (0.56 mm)</option>
+              <option value="" disabled>— Seleccionar tipo —</option>
+              <option value="Común">Ladrillo Común</option>
+              <option value="Hueco">Ladrillo Hueco (Cerámico)</option>
+              <option value="Semi Vista">Ladrillo Semi Vista</option>
             </select>
           </div>
 
-          {/* Medida */}
-          <div style={{ flex: 1, minWidth: '140px' }}>
-            <label style={{ display: 'block', marginBottom: '8px', fontWeight: 600, fontSize: '0.85rem', color: 'var(--secondary)' }}>
-              Medidas de Chapa
-            </label>
-            <select
-              value={chapaLisaMedida}
-              onChange={(e) => setChapaLisaMedida(e.target.value)}
-              disabled={!chapaLisaCalibre}
-              style={{
-                width: '100%',
-                padding: '12px',
-                borderRadius: '8px',
-                border: '1px solid var(--border-color)',
-                backgroundColor: 'white',
-                fontWeight: 500,
-                color: 'var(--text-main)',
-                cursor: 'pointer',
-                outline: 'none',
-                boxShadow: 'var(--shadow-sm)'
-              }}
-            >
-              <option value="" disabled>— Seleccionar medida —</option>
-              {chapaLisaCalibre && chapaLisaCalibre !== "24" && <option value="1 x 2">1.00 x 2.00 mts</option>}
-              {chapaLisaCalibre && <option value="1.22 x 2.44">1.22 x 2.44 mts</option>}
-            </select>
-          </div>
+          {/* Medida / Dimensión (Only shown for Hueco) */}
+          {ladrilloTipo === "Hueco" && (
+            <div style={{ flex: 1, minWidth: '140px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: 600, fontSize: '0.85rem', color: 'var(--secondary)' }}>
+                Medida / Dimensión
+              </label>
+              <select
+                value={ladrilloMedida}
+                onChange={(e) => setLadrilloMedida(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  borderRadius: '8px',
+                  border: '1px solid var(--border-color)',
+                  backgroundColor: 'white',
+                  fontWeight: 500,
+                  color: 'var(--text-main)',
+                  cursor: 'pointer',
+                  outline: 'none',
+                  boxShadow: 'var(--shadow-sm)'
+                }}
+              >
+                <option value="" disabled>— Seleccionar medida —</option>
+                <option value="8 x 18 x 33">8 x 18 x 33 cm</option>
+                <option value="12 x 18 x 33">12 x 18 x 33 cm</option>
+                <option value="18 x 18 x 33">18 x 18 x 33 cm</option>
+              </select>
+            </div>
+          )}
         </div>
 
         {/* Product display and CTA */}
@@ -717,8 +1284,8 @@ export default function Catalogo() {
             <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block' }}>
               Producto Seleccionado:
             </span>
-            <span style={{ fontWeight: 600, color: chapaLisaReady ? 'var(--secondary)' : 'var(--text-muted)', fontSize: '0.95rem' }}>
-              {chapaLisaReady ? chapaLisaProductName : "Seleccioná calibre y medida"}
+            <span style={{ fontWeight: 600, color: ladrilloReady ? 'var(--secondary)' : 'var(--text-muted)', fontSize: '0.95rem' }}>
+              {ladrilloReady ? (matchedLadrilloItem ? matchedLadrilloItem.ARTICULO : "No disponible") : "Seleccioná tipo de ladrillo"}
             </span>
           </div>
 
@@ -726,8 +1293,8 @@ export default function Catalogo() {
             <input
               type="number"
               min="1"
-              value={chapaLisaQty}
-              onChange={(e) => setChapaLisaQty(Math.max(1, parseInt(e.target.value) || 1))}
+              value={ladrilloQty}
+              onChange={(e) => setLadrilloQty(Math.max(1, parseInt(e.target.value) || 1))}
               style={{
                 width: '70px',
                 padding: '12px',
@@ -739,17 +1306,18 @@ export default function Catalogo() {
               }}
             />
             <button
-              className="btn"
-              onClick={handleAddChapaLisa}
-              disabled={!chapaLisaReady}
+              className="btn btn-primary"
+              onClick={handleAddLadrillo}
+              disabled={!ladrilloReady}
               style={{
                 padding: '12px 24px',
                 borderRadius: '8px',
                 fontWeight: 700,
-                backgroundColor: '#475569',
-                opacity: chapaLisaReady ? 1 : 0.6,
-                cursor: chapaLisaReady ? 'pointer' : 'not-allowed',
-                boxShadow: chapaLisaReady ? '0 4px 12px rgba(71,85,105,0.2)' : 'none',
+                backgroundColor: '#f97316',
+                border: 'none',
+                opacity: ladrilloReady ? 1 : 0.6,
+                cursor: ladrilloReady ? 'pointer' : 'not-allowed',
+                boxShadow: ladrilloReady ? '0 4px 12px rgba(249,115,22,0.2)' : 'none',
               }}
             >
               Agregar
@@ -984,29 +1552,6 @@ export default function Catalogo() {
       ) : !selectedCategory ? (
         /* CATEGORY GRID VIEW */
         <section style={{ animation: 'fadeInUp 0.4s ease-out' }}>
-          {/* Banner */}
-          <div style={{
-            position: 'relative', borderRadius: '16px', overflow: 'hidden',
-            marginBottom: '30px', boxShadow: 'var(--shadow-md)',
-          }}>
-            <img
-              src="/banner_marcas_larural.jpg"
-              alt="Marcas Líderes"
-              style={{ width: '100%', display: 'block', maxHeight: '280px', objectFit: 'cover' }}
-            />
-            <div style={{
-              position: 'absolute', bottom: 0, left: 0, right: 0,
-              padding: '32px 24px',
-              background: 'linear-gradient(0deg, rgba(127,0,0,0.9) 0%, transparent 100%)',
-              color: 'white',
-            }}>
-              <h3 style={{ fontSize: '1.5rem', marginBottom: '6px', fontWeight: 700 }}>
-                🏠 Todo para tu Obra en un Solo Lugar
-              </h3>
-              <p style={{ opacity: 0.9 }}>Holcim · Amanco · Ferrum · Tersuave · Weber — Orgullosamente afiliados a Disensa</p>
-            </div>
-          </div>
-
           <h3 style={{ marginBottom: '20px', color: 'var(--secondary)', fontSize: '1.3rem', fontWeight: 600 }}>
             Explorar Familias
           </h3>
@@ -1127,6 +1672,29 @@ export default function Catalogo() {
                 </div>
               ))}
           </div>
+
+          {/* Banner */}
+          <div style={{
+            position: 'relative', borderRadius: '16px', overflow: 'hidden',
+            marginTop: '40px', marginBottom: '10px', boxShadow: 'var(--shadow-md)',
+          }}>
+            <img
+              src="/banner_marcas_larural.jpg"
+              alt="Marcas Líderes"
+              style={{ width: '100%', height: 'auto', display: 'block' }}
+            />
+            <div style={{
+              position: 'absolute', bottom: 0, left: 0, right: 0,
+              padding: '32px 24px',
+              background: 'linear-gradient(0deg, rgba(127,0,0,0.9) 0%, transparent 100%)',
+              color: 'white',
+            }}>
+              <h3 style={{ fontSize: '1.5rem', marginBottom: '6px', fontWeight: 700 }}>
+                🏠 Todo para tu Obra en un Solo Lugar
+              </h3>
+              <p style={{ opacity: 0.9 }}>Holcim · Amanco · Ferrum · Tersuave · Weber — Orgullosamente afiliados a Disensa</p>
+            </div>
+          </div>
         </section>
       ) : (
         /* CATEGORY DETAIL VIEW */
@@ -1191,6 +1759,8 @@ export default function Catalogo() {
               .map(([subcat, items]) => {
                 const isAridos = subcat.toLowerCase().includes("arido");
                 const isChapas = subcat.toLowerCase() === "chapas";
+                const isViguetas = subcat.toLowerCase() === "viguetas";
+                const isLadrillos = subcat.toLowerCase() === "ladrillos";
                 return (
                   <div key={subcat} style={{ marginBottom: '40px' }}>
                     <h4 style={{
@@ -1208,6 +1778,10 @@ export default function Catalogo() {
                         {renderChapasWidget()}
                         {renderChapasLisasWidget()}
                       </>
+                    ) : isViguetas ? (
+                      renderViguetasWidget()
+                    ) : isLadrillos ? (
+                      renderLadrillosWidget()
                     ) : (
                       <div className="grid">
                         {items.map((item, idx) => renderProductCard(item, `${subcat}-${idx}`))}
