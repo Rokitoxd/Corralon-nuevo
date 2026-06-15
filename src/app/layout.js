@@ -23,8 +23,18 @@ export const metadata = {
     "Disensa",
     "envíos a obra",
   ],
-  icons: {
-    icon: "/favicon.png",
+  metadataBase: new URL("https://corralonlarural.com"),
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    title: "Corralon La Rural | Materiales de Construcción en Tucumán",
+    description:
+      "Tu corralón de confianza en Tucumán, Argentina. Materiales de construcción, ferretería, plomería y más. Envíos a obra.",
+    url: "https://corralonlarural.com",
+    siteName: "Corralon La Rural",
+    locale: "es_AR",
+    type: "website",
   },
 };
 
@@ -114,6 +124,9 @@ export default function RootLayout({ children }) {
                 <Link href="/calculadora">Calculadora de materiales</Link>
                 <Link href="/planilla">Enviar planilla</Link>
                 <Link href="/carrito">Mi pedido</Link>
+                <h3 style={{ marginTop: 24 }}>Legal</h3>
+                <Link href="/terminos">Términos y Condiciones</Link>
+                <Link href="/privacidad">Política de Privacidad</Link>
               </div>
 
               {/* Column 3 — Hours & Address */}
@@ -121,7 +134,11 @@ export default function RootLayout({ children }) {
                 <h3>Horarios y Ubicación</h3>
                 <p>
                   🕐 Lunes a Viernes<br />
-                  08:00 a 18:00hs
+                  08:00 a 17:00hs
+                </p>
+                <p style={{ marginTop: 4 }}>
+                  🕐 Sábados<br />
+                  08:00 a 12:30hs
                 </p>
                 <p style={{ marginTop: 12 }}>
                   📍 Av. Camino del Perú 1291<br />
@@ -170,7 +187,12 @@ export default function RootLayout({ children }) {
             </div>
 
             <div className="footer-bottom">
-              © {new Date().getFullYear()} Corralon La Rural. Todos los derechos reservados. Afiliados a Disensa.
+              <span>© {new Date().getFullYear()} Corralon La Rural. Todos los derechos reservados. Afiliados a Disensa.</span>
+              <div className="footer-legal-links">
+                <Link href="/terminos">Términos y Condiciones</Link>
+                <span className="footer-legal-sep">·</span>
+                <Link href="/privacidad">Política de Privacidad</Link>
+              </div>
             </div>
           </footer>
 
